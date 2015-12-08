@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-type StoreSuite struct {
+type StoreSchemaSuite struct {
 	suite.Suite
 
 	prefix      string
@@ -18,12 +18,12 @@ type StoreSuite struct {
 	schemaBytes []byte
 }
 
-func (s *StoreSuite) SetupSuite() {
+func (s *StoreSchemaSuite) SetupSuite() {
 	s.prefix = "mock/"
 	s.schemaBytes = []byte(`{"type": "string"}`)
 }
 
-func (s *StoreSuite) SetupTest() {
+func (s *StoreSchemaSuite) SetupTest() {
 	s.prefix = "mock/"
 
 	s.mock = &mock.Mock{}
@@ -36,14 +36,14 @@ func (s *StoreSuite) SetupTest() {
 
 // STORE
 
-func (s *StoreSuite) TestStoreInvalid() {
+func (s *StoreSchemaSuite) TestStoreSchemaInvalid() {
 	err := s.store.StoreSchema("invalid", []byte{})
 	s.Assert().NotNil(err)
 
 	s.mock.AssertNotCalled(s.T(), "Put", s.prefix+"invalid", "")
 }
 
-func (s *StoreSuite) TestStoreValid() {
+func (s *StoreSchemaSuite) TestStoreSchemaValid() {
 	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
 	err := s.store.StoreSchema("valid", s.schemaBytes)
@@ -52,7 +52,7 @@ func (s *StoreSuite) TestStoreValid() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func (s *StoreSuite) TestStoreError() {
+func (s *StoreSchemaSuite) TestStoreSchemaError() {
 	err := errors.New("test")
 	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(err)
 
@@ -64,7 +64,7 @@ func (s *StoreSuite) TestStoreError() {
 
 // RETRIEVE
 
-func (s *StoreSuite) TestRetrievePresent() {
+func (s *StoreSchemaSuite) TestRetrieveSchemaPresent() {
 	s.mock.On("Get", s.prefix+"present").Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
 
 	schema, err := s.store.RetrieveSchema("present")
@@ -74,7 +74,7 @@ func (s *StoreSuite) TestRetrievePresent() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func (s *StoreSuite) TestRetrieveAbsent() {
+func (s *StoreSchemaSuite) TestRetrieveSchemaAbsent() {
 	s.mock.On("Get", s.prefix+"absent").Return(&store.KVPair{}, nil)
 
 	schema, err := s.store.RetrieveSchema("absent")
@@ -84,7 +84,7 @@ func (s *StoreSuite) TestRetrieveAbsent() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func (s *StoreSuite) TestRetrieveError() {
+func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 	err := errors.New("test")
 	s.mock.On("Get", s.prefix+"error").Return(&store.KVPair{}, err)
 
@@ -97,7 +97,7 @@ func (s *StoreSuite) TestRetrieveError() {
 
 // DELETE
 
-func (s *StoreSuite) TestDeletePresent() {
+func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {
 	s.mock.On("Delete", s.prefix+"present").Return(nil)
 
 	err := s.store.DeleteSchema("present")
@@ -106,7 +106,7 @@ func (s *StoreSuite) TestDeletePresent() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func (s *StoreSuite) TestDeleteError() {
+func (s *StoreSchemaSuite) TestDeleteSchemaError() {
 	err := errors.New("test")
 	s.mock.On("Delete", s.prefix+"error").Return(err)
 
@@ -116,7 +116,7 @@ func (s *StoreSuite) TestDeleteError() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func TestStoreSuite(t *testing.T) {
+func TestStoreSchemaSuite(t *testing.T) {
 	t.Parallel()
-	suite.Run(t, new(StoreSuite))
+	suite.Run(t, new(StoreSchemaSuite))
 }
