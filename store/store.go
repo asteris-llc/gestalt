@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// ErrNotFound is returned when a given schema is not found
 	ErrNotFound = errors.New("not found")
 )
 
