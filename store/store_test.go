@@ -116,7 +116,7 @@ func (s *StoreSuite) TestDeleteError() {
 	s.mock.AssertExpectations(s.T())
 }
 
-func TestStoreStuite(t *testing.T) {
+func TestStoreSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(StoreSuite))
 }
