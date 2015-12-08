@@ -90,9 +90,9 @@ func TestValidateAllInvalid(t *testing.T) {
 	assert.Equal(t, len(errs), 2)
 }
 
-// ValidateOne
+// ValidateField
 
-func TestValidateOneValid(t *testing.T) {
+func TestValidateFieldValid(t *testing.T) {
 	t.Parallel()
 
 	schema, err := New(sampleSchema)
@@ -103,7 +103,7 @@ func TestValidateOneValid(t *testing.T) {
 	assert.Equal(t, len(errs), 0)
 }
 
-func TestValidateOneInvalid(t *testing.T) {
+func TestValidateFieldInvalid(t *testing.T) {
 	t.Parallel()
 
 	schema, err := New(sampleSchema)
@@ -114,7 +114,7 @@ func TestValidateOneInvalid(t *testing.T) {
 	assert.Equal(t, len(errs), 1)
 }
 
-func TestValidateOneBadName(t *testing.T) {
+func TestValidateFieldBadName(t *testing.T) {
 	t.Parallel()
 
 	schema, err := New(sampleSchema)
