@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
-	"strings"
 )
 
 var (
@@ -65,8 +64,8 @@ func (s *Schema) ValidateAll(input []byte) (valid bool, errs []error) {
 
 // ValidateField validates a single named path in the JSON
 func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []error) {
-	field, err := s.getField(name)
-	if err != nil {
+	field, ok := s.fields()[name]
+	if !ok {
 		return false, []error{ErrNoField}
 	}
 
@@ -86,7 +85,20 @@ func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []er
 
 // Defaults retrieves the defaults from the schema in a map
 func (s *Schema) Defaults() map[string]string {
-	results := map[string]string{}
+	defaults := map[string]string{}
+
+	for key, field := range s.fields() {
+		def, ok := field["default"]
+		if ok {
+			defaults[key] = fmt.Sprintf("%v", def)
+		}
+	}
+
+	return defaults
+}
+
+func (s *Schema) fields() map[string]map[string]interface{} {
+	fields := map[string]map[string]interface{}{}
 
 	type Item struct {
 		path  string
@@ -96,7 +108,7 @@ func (s *Schema) Defaults() map[string]string {
 
 	props, ok := s.raw["properties"]
 	if !ok {
-		return results
+		return fields
 	}
 
 	for k, v := range props.(map[string]interface{}) {
@@ -107,10 +119,7 @@ func (s *Schema) Defaults() map[string]string {
 		item := queue[0]
 		queue = queue[1:]
 
-		def, ok := item.value["default"]
-		if ok {
-			results[item.path] = fmt.Sprintf("%v", def)
-		}
+		fields[item.path] = item.value
 
 		props, ok = item.value["properties"]
 		if ok {
@@ -125,36 +134,5 @@ func (s *Schema) Defaults() map[string]string {
 		}
 	}
 
-	return results
-}
-
-func (s *Schema) getField(name string) (map[string]interface{}, error) {
-	field := s.raw
-	for _, part := range strings.Split(name, "/") {
-		if part == "" {
-			continue
-		}
-
-		rawProps, ok := field["properties"]
-		if !ok {
-			return nil, ErrNoField
-		}
-
-		props, ok := rawProps.(map[string]interface{})
-		if !ok {
-			return nil, ErrNoField
-		}
-
-		property, ok := props[part]
-		if !ok {
-			return nil, ErrNoField
-		}
-
-		field, ok = property.(map[string]interface{})
-		if !ok {
-			return nil, ErrNoField
-		}
-	}
-
-	return field, nil
+	return fields
 }
