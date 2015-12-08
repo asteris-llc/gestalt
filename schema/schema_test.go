@@ -149,9 +149,9 @@ func TestDefaults(t *testing.T) {
 	result := schema.Defaults()
 	assert.Equal(
 		t,
-		map[string]string{
-			"three":        "3",
-			"nested/inner": "inner",
+		map[string][]byte{
+			"three":        []byte("3"),
+			"nested/inner": []byte("inner"),
 		},
 		result,
 	)

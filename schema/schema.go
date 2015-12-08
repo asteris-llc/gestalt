@@ -84,13 +84,13 @@ func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []er
 }
 
 // Defaults retrieves the defaults from the schema in a map
-func (s *Schema) Defaults() map[string]string {
-	defaults := map[string]string{}
+func (s *Schema) Defaults() map[string][]byte {
+	defaults := map[string][]byte{}
 
 	for key, field := range s.fields() {
 		def, ok := field["default"]
 		if ok {
-			defaults[key] = fmt.Sprintf("%v", def)
+			defaults[key] = []byte(fmt.Sprintf("%v", def))
 		}
 	}
 
