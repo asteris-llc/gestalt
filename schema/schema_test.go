@@ -16,6 +16,19 @@ var sampleSchema = []byte(`{
     },
     "str": {
       "type": "string"
+    },
+    "three": {
+      "type": "integer",
+      "default": 3
+    },
+    "nested": {
+      "type": "object",
+      "properties": {
+        "inner": {
+          "type": "string",
+          "default": "inner"
+        }
+      }
     }
   },
   "required": [
@@ -123,4 +136,23 @@ func TestValidateFieldBadName(t *testing.T) {
 	valid, errs := schema.ValidateField("num/b", []byte("1"))
 	assert.False(t, valid)
 	assert.Equal(t, errs, []error{ErrNoField})
+}
+
+// Defaults
+
+func TestDefaults(t *testing.T) {
+	t.Parallel()
+
+	schema, err := New(sampleSchema)
+	require.Nil(t, err)
+
+	result := schema.Defaults()
+	assert.Equal(
+		t,
+		map[string]string{
+			"three":        "3",
+			"nested/inner": "inner",
+		},
+		result,
+	)
 }

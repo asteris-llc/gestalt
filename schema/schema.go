@@ -84,6 +84,50 @@ func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []er
 	return result.Valid(), errs
 }
 
+// Defaults retrieves the defaults from the schema in a map
+func (s *Schema) Defaults() map[string]string {
+	results := map[string]string{}
+
+	type Item struct {
+		path  string
+		value map[string]interface{}
+	}
+	queue := []Item{}
+
+	props, ok := s.raw["properties"]
+	if !ok {
+		return results
+	}
+
+	for k, v := range props.(map[string]interface{}) {
+		queue = append(queue, Item{k, v.(map[string]interface{})})
+	}
+
+	for len(queue) != 0 {
+		item := queue[0]
+		queue = queue[1:]
+
+		def, ok := item.value["default"]
+		if ok {
+			results[item.path] = fmt.Sprintf("%v", def)
+		}
+
+		props, ok = item.value["properties"]
+		if ok {
+			for k, v := range props.(map[string]interface{}) {
+				queue = append(
+					queue,
+					Item{
+						item.path + "/" + k,
+						v.(map[string]interface{})},
+				)
+			}
+		}
+	}
+
+	return results
+}
+
 func (s *Schema) getField(name string) (map[string]interface{}, error) {
 	field := s.raw
 	for _, part := range strings.Split(name, "/") {
