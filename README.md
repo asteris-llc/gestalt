@@ -1,3 +1,3 @@
-# Plan
+# Gestalt
 
 TOOD: fill in the README
