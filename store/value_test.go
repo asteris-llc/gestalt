@@ -40,6 +40,7 @@ func (s *StoreValueSuite) SetupTest() {
 	s.prefix = "mock/"
 
 	s.mock = &mock.Mock{}
+	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 	s.backend = NewBackend(s.mock, "mock", s.prefix)
 
 	var err error
@@ -50,7 +51,6 @@ func (s *StoreValueSuite) SetupTest() {
 // StoreValues
 
 func (s *StoreValueSuite) TestStoreValuesValid() {
-	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 	s.mock.On("Put", s.prefix+"test/required", []byte("a"), &store.WriteOptions{}).Return(nil)
 
 	errors := s.store.StoreValues("test", []byte(`{"required": "a"}`))
@@ -60,8 +60,6 @@ func (s *StoreValueSuite) TestStoreValuesValid() {
 }
 
 func (s *StoreValueSuite) TestStoreValuesInvalid() {
-	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
-
 	errors := s.store.StoreValues("test", []byte(`{"required": 1}`))
 	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
 
@@ -71,12 +69,36 @@ func (s *StoreValueSuite) TestStoreValuesInvalid() {
 // StoreDefaultValues
 
 func (s *StoreValueSuite) TestStoreDefaultValues() {
-	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 	s.mock.On("Put", s.prefix+"test/default", []byte("default"), &store.WriteOptions{}).Return(nil)
 	s.mock.On("Put", s.prefix+"test/nested/inner", []byte("nested/inner"), &store.WriteOptions{}).Return(nil)
 
 	err := s.store.StoreDefaultValues("test")
 	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
+// StoreValue
+
+func (s *StoreValueSuite) TestStoreValueValid() {
+	s.mock.On("Put", s.prefix+"test/required", []byte("a"), &store.WriteOptions{}).Return(nil)
+
+	errors := s.store.StoreValue("test", "required", []byte(`"a"`))
+	s.Assert().Equal(0, len(errors), fmt.Sprintf("%v", errors))
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestStoreValueInvalid() {
+	errors := s.store.StoreValue("test", "required", []byte("1"))
+	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestStoreValueNoKey() {
+	errors := s.store.StoreValue("test", "blah", []byte{})
+	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
 
 	s.mock.AssertExpectations(s.T())
 }

@@ -1,6 +1,8 @@
 package store
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/asteris-llc/gestalt/schema"
 	"github.com/docker/libkv/store"
 	"path"
@@ -74,9 +76,43 @@ func (s *Store) StoreDefaultValues(app string) error {
 	return nil
 }
 
-// store one value
+// StoreValue stores a single value
+func (s *Store) StoreValue(app, key string, jsonValue []byte) []error {
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return []error{err}
+	}
 
-// store a single default value
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return []error{err}
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return []error{err}
+	}
+
+	valid, errors := target.ValidateField(key, jsonValue)
+	if !valid {
+		return errors
+	}
+
+	// Unmarshal the byte value before storage (to avoid storing quotes, etc)
+	var value interface{}
+	err = json.Unmarshal(jsonValue, &value)
+	if err != nil {
+		return []error{err}
+	}
+	byteValue := []byte(fmt.Sprintf("%v", value))
+
+	err = backend.Put(ensurePrefix(backend.Prefix, path.Join(app, key)), byteValue, &store.WriteOptions{})
+	if err != nil {
+		return []error{err}
+	}
+
+	return []error{}
+}
 
 // delete a value (enforcing types, setting default if necessary)
 
