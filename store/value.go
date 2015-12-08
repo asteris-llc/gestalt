@@ -47,7 +47,32 @@ func (s *Store) StoreValues(app string, body []byte) []error {
 	return []error{}
 }
 
-// store the default values
+// StoreDefaultValues stores the default values for an app
+func (s *Store) StoreDefaultValues(app string) error {
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return err
+	}
+
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return err
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return err
+	}
+
+	for k, v := range target.Defaults() {
+		err = backend.Put(ensurePrefix(backend.Prefix, path.Join(app, k)), v, &store.WriteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 // store one value
 

@@ -68,6 +68,19 @@ func (s *StoreValueSuite) TestStoreValuesInvalid() {
 	s.mock.AssertExpectations(s.T())
 }
 
+// StoreDefaultValues
+
+func (s *StoreValueSuite) TestStoreDefaultValues() {
+	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
+	s.mock.On("Put", s.prefix+"test/default", []byte("default"), &store.WriteOptions{}).Return(nil)
+	s.mock.On("Put", s.prefix+"test/nested/inner", []byte("nested/inner"), &store.WriteOptions{}).Return(nil)
+
+	err := s.store.StoreDefaultValues("test")
+	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
 func TestStoreValueSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(StoreValueSuite))
