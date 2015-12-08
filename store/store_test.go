@@ -37,7 +37,7 @@ func (s *StoreSuite) SetupTest() {
 // STORE
 
 func (s *StoreSuite) TestStoreInvalid() {
-	err := s.store.Store("invalid", []byte{})
+	err := s.store.StoreSchema("invalid", []byte{})
 	s.Assert().NotNil(err)
 
 	s.mock.AssertNotCalled(s.T(), "Put", s.prefix+"invalid", "")
@@ -46,7 +46,7 @@ func (s *StoreSuite) TestStoreInvalid() {
 func (s *StoreSuite) TestStoreValid() {
 	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
-	err := s.store.Store("valid", s.schemaBytes)
+	err := s.store.StoreSchema("valid", s.schemaBytes)
 	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
@@ -56,7 +56,7 @@ func (s *StoreSuite) TestStoreError() {
 	err := errors.New("test")
 	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(err)
 
-	err2 := s.store.Store("valid", s.schemaBytes)
+	err2 := s.store.StoreSchema("valid", s.schemaBytes)
 	s.Assert().Equal(err, err2)
 
 	s.mock.AssertExpectations(s.T())
@@ -67,7 +67,7 @@ func (s *StoreSuite) TestStoreError() {
 func (s *StoreSuite) TestRetrievePresent() {
 	s.mock.On("Get", s.prefix+"present").Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
 
-	schema, err := s.store.Retrieve("present")
+	schema, err := s.store.RetrieveSchema("present")
 	s.Assert().Nil(err)
 	s.Assert().Equal(s.schemaBytes, schema)
 
@@ -77,7 +77,7 @@ func (s *StoreSuite) TestRetrievePresent() {
 func (s *StoreSuite) TestRetrieveAbsent() {
 	s.mock.On("Get", s.prefix+"absent").Return(&store.KVPair{}, nil)
 
-	schema, err := s.store.Retrieve("absent")
+	schema, err := s.store.RetrieveSchema("absent")
 	s.Assert().Equal(err, ErrNotFound)
 	s.Assert().Equal(schema, []byte{})
 
@@ -88,7 +88,7 @@ func (s *StoreSuite) TestRetrieveError() {
 	err := errors.New("test")
 	s.mock.On("Get", s.prefix+"error").Return(&store.KVPair{}, err)
 
-	schema, err2 := s.store.Retrieve("error")
+	schema, err2 := s.store.RetrieveSchema("error")
 	s.Assert().Equal(err2, err)
 	s.Assert().Equal(schema, []byte{})
 
@@ -100,7 +100,7 @@ func (s *StoreSuite) TestRetrieveError() {
 func (s *StoreSuite) TestDeletePresent() {
 	s.mock.On("Delete", s.prefix+"present").Return(nil)
 
-	err := s.store.Delete("present")
+	err := s.store.DeleteSchema("present")
 	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
@@ -110,7 +110,7 @@ func (s *StoreSuite) TestDeleteError() {
 	err := errors.New("test")
 	s.mock.On("Delete", s.prefix+"error").Return(err)
 
-	err2 := s.store.Delete("error")
+	err2 := s.store.DeleteSchema("error")
 	s.Assert().Equal(err2, err)
 
 	s.mock.AssertExpectations(s.T())
