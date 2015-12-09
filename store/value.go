@@ -40,7 +40,11 @@ func (s *Store) StoreValues(app string, body []byte) []error {
 	}
 
 	for k, v := range kvs {
-		err = backend.Put(ensurePrefix(backend.Prefix, path.Join(app, k)), v, &store.WriteOptions{})
+		err = backend.Put(
+			ensurePrefix(backend.Prefix, path.Join(app, k)),
+			v,
+			&store.WriteOptions{},
+		)
 		if err != nil {
 			return []error{err}
 		}
@@ -67,7 +71,11 @@ func (s *Store) StoreDefaultValues(app string) error {
 	}
 
 	for k, v := range target.Defaults() {
-		err = backend.Put(ensurePrefix(backend.Prefix, path.Join(app, k)), v, &store.WriteOptions{})
+		err = backend.Put(
+			ensurePrefix(backend.Prefix, path.Join(app, k)),
+			v,
+			&store.WriteOptions{},
+		)
 		if err != nil {
 			return err
 		}
@@ -106,7 +114,11 @@ func (s *Store) StoreValue(app, key string, jsonValue []byte) []error {
 	}
 	byteValue := []byte(fmt.Sprintf("%v", value))
 
-	err = backend.Put(ensurePrefix(backend.Prefix, path.Join(app, key)), byteValue, &store.WriteOptions{})
+	err = backend.Put(
+		ensurePrefix(backend.Prefix, path.Join(app, key)),
+		byteValue,
+		&store.WriteOptions{},
+	)
 	if err != nil {
 		return []error{err}
 	}
