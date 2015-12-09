@@ -126,6 +126,26 @@ func (s *Store) StoreValue(app, key string, jsonValue []byte) []error {
 	return []error{}
 }
 
+// DeleteValues deletes all the values
+func (s *Store) DeleteValues(app string) error {
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return err
+	}
+
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return err
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return err
+	}
+
+	return backend.DeleteTree(ensurePrefix(backend.Prefix, app))
+}
+
 // delete a value (enforcing types, setting default if necessary)
 
 // delete all the values

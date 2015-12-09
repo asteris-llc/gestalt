@@ -103,6 +103,16 @@ func (s *StoreValueSuite) TestStoreValueNoKey() {
 	s.mock.AssertExpectations(s.T())
 }
 
+// DeleteValues
+
+func (s *StoreValueSuite) TestDeleteValues() {
+	s.mock.On("DeleteTree", s.prefix+"test").Return(nil)
+	err := s.store.DeleteValues("test")
+	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
 func TestStoreValueSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(StoreValueSuite))
