@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"sort"
 	"testing"
 )
 
@@ -148,5 +149,10 @@ func TestFlatRequired(t *testing.T) {
 	require.Nil(t, err)
 
 	required := schema.FlatRequired()
-	assert.Equal(t, []string{"num", "str"}, required)
+	should := []string{"num", "str"}
+
+	sort.Strings(required)
+	sort.Strings(should)
+
+	assert.Equal(t, should, required)
 }
