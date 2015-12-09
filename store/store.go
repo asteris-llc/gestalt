@@ -42,11 +42,9 @@ func (s *Store) getBackend(name string) (*Backend, error) {
 }
 
 func (s *Store) getBackendForSchema(target *schema.Schema) (*Backend, error) {
-	name, exists := target.BackendName()
-
-	if !exists {
+	if target.Backend == "" {
 		return s.defaultStore, nil
 	}
 
-	return s.getBackend(name)
+	return s.getBackend(target.Backend)
 }

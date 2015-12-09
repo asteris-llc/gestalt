@@ -73,7 +73,7 @@ func (s *Store) StoreDefaultValues(app string) error {
 	for k, v := range target.Defaults() {
 		err = backend.Put(
 			ensurePrefix(backend.Prefix, path.Join(app, k)),
-			v,
+			[]byte(fmt.Sprintf("%v", v)),
 			&store.WriteOptions{},
 		)
 		if err != nil {
