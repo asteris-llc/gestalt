@@ -138,3 +138,15 @@ func TestDefaults(t *testing.T) {
 		}
 	}
 }
+
+// FlatRequired
+
+func TestFlatRequired(t *testing.T) {
+	t.Parallel()
+
+	schema, err := New(sampleSchema)
+	require.Nil(t, err)
+
+	required := schema.FlatRequired()
+	assert.Equal(t, []string{"num", "str"}, required)
+}

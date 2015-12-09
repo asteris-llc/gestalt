@@ -127,3 +127,24 @@ func (s *Schema) Fields() map[string]*Field {
 
 	return fields
 }
+
+// FlatRequired returns a list of fields that are required
+func (s *Schema) FlatRequired() []string {
+	required := map[string]bool{}
+
+	for _, name := range s.Required {
+		required[name] = true
+	}
+
+	for name, field := range s.Fields() {
+		if field.Required != nil && *field.Required {
+			required[name] = true
+		}
+	}
+
+	out := []string{}
+	for field := range required {
+		out = append(out, field)
+	}
+	return out
+}
