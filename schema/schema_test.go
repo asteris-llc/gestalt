@@ -55,30 +55,6 @@ func TestNewInvalid(t *testing.T) {
 	assert.Nil(t, schema)
 }
 
-// BackendName
-
-func TestBackendNamePresent(t *testing.T) {
-	t.Parallel()
-
-	schema, err := New([]byte(`{"backend": "test"}`))
-	require.Nil(t, err)
-
-	backend, ok := schema.BackendName()
-	assert.Equal(t, backend, "test")
-	assert.True(t, ok)
-}
-
-func TestBackendNameAbsent(t *testing.T) {
-	t.Parallel()
-
-	schema, err := New([]byte(`{}`))
-	require.Nil(t, err)
-
-	backend, ok := schema.BackendName()
-	assert.Equal(t, backend, "")
-	assert.False(t, ok)
-}
-
 // ValidateAll
 
 func TestValidateAllValid(t *testing.T) {
@@ -113,7 +89,7 @@ func TestValidateFieldValid(t *testing.T) {
 
 	valid, errs := schema.ValidateField("num", []byte("1"))
 	assert.True(t, valid)
-	assert.Equal(t, len(errs), 0)
+	assert.Equal(t, 0, len(errs))
 }
 
 func TestValidateFieldInvalid(t *testing.T) {
@@ -124,7 +100,7 @@ func TestValidateFieldInvalid(t *testing.T) {
 
 	valid, errs := schema.ValidateField("num", []byte(`"banana"`))
 	assert.False(t, valid)
-	assert.Equal(t, len(errs), 1)
+	assert.Equal(t, 1, len(errs))
 }
 
 func TestValidateFieldBadName(t *testing.T) {
@@ -147,12 +123,18 @@ func TestDefaults(t *testing.T) {
 	require.Nil(t, err)
 
 	result := schema.Defaults()
-	assert.Equal(
-		t,
-		map[string][]byte{
-			"three":        []byte("3"),
-			"nested/inner": []byte("inner"),
-		},
-		result,
-	)
+
+	should := map[string]interface{}{
+		"three":        float64(3),
+		"nested/inner": "inner",
+	}
+
+	for k, v := range should {
+		switch v.(type) {
+		case float64:
+			assert.Equal(t, v.(float64), result[k].(float64), k)
+		default:
+			assert.Equal(t, v, result[k], k)
+		}
+	}
 }

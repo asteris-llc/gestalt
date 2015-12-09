@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
+	"path"
 )
 
 var (
@@ -14,42 +15,43 @@ var (
 
 // Schema does validation and storage on values
 type Schema struct {
-	raw map[string]interface{}
+	Field
+	Required []string `json:"required,omitempty"`
+
+	// extended values for gestalt
+	Backend string `json:"backend,omitempty"`
+
+	loader gojsonschema.JSONLoader
 }
 
 // New returns a new Schema instance from the specified JSON
-func New(input []byte) (*Schema, error) {
-	raw := map[string]interface{}{}
-	err := json.Unmarshal(input, &raw)
+func New(raw []byte) (*Schema, error) {
+	schema := new(Schema)
+	err := json.Unmarshal(raw, schema)
 	if err != nil {
 		return nil, err
 	}
 
-	schema := &Schema{raw: raw}
+	mapped := map[string]interface{}{}
+	err = json.Unmarshal(raw, &mapped)
+	if err != nil {
+		return nil, err
+	}
+
+	schema.loader = gojsonschema.NewGoLoader(mapped)
 
 	return schema, schema.validateInput()
 }
 
 func (s *Schema) validateInput() error {
-	loader := gojsonschema.NewGoLoader(s.raw)
-	_, err := gojsonschema.NewSchema(loader)
+	_, err := gojsonschema.NewSchema(s.loader)
 	return err
-}
-
-// BackendName returns the backend name that this schema expects
-func (s *Schema) BackendName() (string, bool) {
-	backend, ok := s.raw["backend"]
-
-	if ok {
-		return backend.(string), ok
-	}
-	return "", ok
 }
 
 // ValidateAll validates a given JSON input for the entire schema
 func (s *Schema) ValidateAll(input []byte) (valid bool, errs []error) {
 	loader := gojsonschema.NewStringLoader(string(input))
-	result, err := gojsonschema.Validate(gojsonschema.NewGoLoader(s.raw), loader)
+	result, err := gojsonschema.Validate(s.loader, loader)
 	if err != nil {
 		return false, []error{err}
 	}
@@ -64,13 +66,13 @@ func (s *Schema) ValidateAll(input []byte) (valid bool, errs []error) {
 
 // ValidateField validates a single named path in the JSON
 func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []error) {
-	field, ok := s.fields()[name]
+	field, ok := s.Fields()[name]
 	if !ok {
 		return false, []error{ErrNoField}
 	}
 
 	loader := gojsonschema.NewStringLoader(string(input))
-	result, err := gojsonschema.Validate(gojsonschema.NewGoLoader(field), loader)
+	result, err := gojsonschema.Validate(gojsonschema.NewGoLoader(field.Map()), loader)
 	if err != nil {
 		return false, []error{err}
 	}
@@ -84,35 +86,31 @@ func (s *Schema) ValidateField(name string, input []byte) (valid bool, errs []er
 }
 
 // Defaults retrieves the defaults from the schema in a map
-func (s *Schema) Defaults() map[string][]byte {
-	defaults := map[string][]byte{}
+func (s *Schema) Defaults() map[string]interface{} {
+	defaults := map[string]interface{}{}
 
-	for key, field := range s.fields() {
-		def, ok := field["default"]
-		if ok {
-			defaults[key] = []byte(fmt.Sprintf("%v", def))
+	for key, field := range s.Fields() {
+		if field.Default != nil {
+			defaults[key] = *field.Default
 		}
 	}
 
 	return defaults
 }
 
-func (s *Schema) fields() map[string]map[string]interface{} {
-	fields := map[string]map[string]interface{}{}
+// Fields returns a flattened list of fields
+func (s *Schema) Fields() map[string]*Field {
+	fields := map[string]*Field{}
 
 	type Item struct {
 		path  string
-		value map[string]interface{}
+		value *Field
 	}
 	queue := []Item{}
 
-	props, ok := s.raw["properties"]
-	if !ok {
-		return fields
-	}
-
-	for k, v := range props.(map[string]interface{}) {
-		queue = append(queue, Item{k, v.(map[string]interface{})})
+	for name := range s.Properties {
+		field := s.Properties[name]
+		queue = append(queue, Item{name, &field})
 	}
 
 	for len(queue) != 0 {
@@ -121,16 +119,9 @@ func (s *Schema) fields() map[string]map[string]interface{} {
 
 		fields[item.path] = item.value
 
-		props, ok = item.value["properties"]
-		if ok {
-			for k, v := range props.(map[string]interface{}) {
-				queue = append(
-					queue,
-					Item{
-						item.path + "/" + k,
-						v.(map[string]interface{})},
-				)
-			}
+		for name := range item.value.Properties {
+			field := item.value.Properties[name]
+			queue = append(queue, Item{path.Join(item.path, name), &field})
 		}
 	}
 
