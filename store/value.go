@@ -2,10 +2,17 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/asteris-llc/gestalt/schema"
 	"github.com/docker/libkv/store"
 	"path"
+)
+
+var (
+	// ErrFieldRequired is returned when a field is required and receives a
+	// request to be deleted.
+	ErrFieldRequired = errors.New("field is required")
 )
 
 // retrieve all the values
@@ -146,6 +153,39 @@ func (s *Store) DeleteValues(app string) error {
 	return backend.DeleteTree(ensurePrefix(backend.Prefix, app))
 }
 
-// delete a value (enforcing types, setting default if necessary)
+// DeleteValue deletes a single value or sets it back to the default. If the
+// value is required and does not have a default, this method will return an error.
+func (s *Store) DeleteValue(app, key string) error {
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return err
+	}
 
-// delete all the values
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return err
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return err
+	}
+
+	for _, req := range target.FlatRequired() {
+		if key == req {
+			return ErrFieldRequired
+		}
+	}
+
+	if field, ok := target.Defaults()[key]; ok {
+		backend.Put(
+			ensurePrefix(backend.Prefix, path.Join(app, key)),
+			[]byte(fmt.Sprintf("%v", field)),
+			&store.WriteOptions{},
+		)
+	} else {
+		backend.Delete(ensurePrefix(backend.Prefix, path.Join(app, key)))
+	}
+
+	return nil
+}

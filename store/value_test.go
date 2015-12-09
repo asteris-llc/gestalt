@@ -113,6 +113,33 @@ func (s *StoreValueSuite) TestDeleteValues() {
 	s.mock.AssertExpectations(s.T())
 }
 
+// DeleteValue
+
+func (s *StoreValueSuite) TestDeleteValueDeletable() {
+	s.mock.On("Delete", s.prefix+"test/optional").Return(nil)
+
+	err := s.store.DeleteValue("test", "optional")
+	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestDeleteValueRequired() {
+	err := s.store.DeleteValue("test", "required")
+	s.Assert().Equal(ErrFieldRequired, err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestDeleteValueDefault() {
+	s.mock.On("Put", s.prefix+"test/default", []byte("default"), &store.WriteOptions{}).Return(nil)
+
+	err := s.store.DeleteValue("test", "default")
+	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
 func TestStoreValueSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(StoreValueSuite))
