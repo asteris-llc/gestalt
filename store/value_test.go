@@ -76,6 +76,45 @@ func (s *StoreValueSuite) TestRetrieveValues() {
 	s.Assert().True(values["boolean"].(bool))
 }
 
+// RetrieveValues
+
+func (s *StoreValueSuite) TestRetrieveValueValid() {
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("3")}, nil)
+
+	value, err := s.store.RetrieveValue("test", "integer")
+	s.Require().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+
+	s.Assert().Equal(value, 3)
+}
+
+func (s *StoreValueSuite) TestRetrieveValueInvalid() {
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("x")}, nil)
+
+	_, err := s.store.RetrieveValue("test", "integer")
+	s.Require().NotNil(err)
+	s.Assert().Equal(`integer: strconv.ParseInt: parsing "x": invalid syntax`, err.Error())
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestRetrieveValueMissing() {
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{}, nil)
+
+	_, err := s.store.RetrieveValue("test", "integer")
+	s.Assert().Equal(ErrMissingKey, err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
+func (s *StoreValueSuite) TestRetrieveValueBadKey() {
+	_, err := s.store.RetrieveValue("test", "blah")
+	s.Assert().Equal(ErrMissingField, err)
+
+	s.mock.AssertExpectations(s.T())
+}
+
 // StoreValues
 
 func (s *StoreValueSuite) TestStoreValuesValid() {

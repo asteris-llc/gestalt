@@ -14,7 +14,23 @@ var (
 	// ErrFieldRequired is returned when a field is required and receives a
 	// request to be deleted.
 	ErrFieldRequired = errors.New("field is required")
+
+	// ErrMissingKey is returned when a key is missing
+	ErrMissingKey = errors.New("no such key") // TODO: consistent missing key across project
+
+	// ErrMissingField is returned when a field is missing
+	ErrMissingField = errors.New("no such field") // TODO: probably move to schema?
 )
+
+// DecodeError is returned for errors in decoding values
+type DecodeError struct {
+	Field string
+	Err   error
+}
+
+func (d *DecodeError) Error() string {
+	return fmt.Sprintf("%s: %s", d.Field, d.Err)
+}
 
 // RetrieveValues gets all the values from the backend in a map
 func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {
@@ -41,19 +57,57 @@ func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {
 
 		if err != nil {
 			return out, err
-		}
-		if value.Value == nil {
+		} else if value == nil || len(value.Value) == 0 {
 			continue
 		}
 
 		decoded, err := s.decodeValue(value.Value, field.Type)
 		if err != nil {
-			return out, fmt.Errorf("%s: %s", name, err)
+			return out, &DecodeError{name, err}
 		}
 
 		if decoded != nil {
 			out[name] = decoded
 		}
+	}
+
+	return out, nil
+}
+
+// RetrieveValue retrieves a single designated value
+func (s *Store) RetrieveValue(app, key string) (interface{}, error) {
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return nil, err
+	}
+
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return nil, err
+	}
+
+	field, ok := target.Fields()[key]
+	if !ok {
+		return nil, ErrMissingField
+	}
+
+	raw, err := backend.Get(ensurePrefix(backend.Prefix, path.Join(app, key)))
+	if err != nil {
+		return nil, err
+	} else if raw == nil || len(raw.Value) == 0 {
+		return nil, ErrMissingKey
+	}
+
+	// TODO: remember to check for strconv.NumError in the HTTP parts and convert
+	// it to a more friendly error type
+	out, err := s.decodeValue(raw.Value, field.Type)
+	if err != nil {
+		return nil, &DecodeError{key, err}
 	}
 
 	return out, nil
