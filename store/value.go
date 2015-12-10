@@ -7,6 +7,7 @@ import (
 	"github.com/asteris-llc/gestalt/schema"
 	"github.com/docker/libkv/store"
 	"path"
+	"strconv"
 )
 
 var (
@@ -15,7 +16,73 @@ var (
 	ErrFieldRequired = errors.New("field is required")
 )
 
-// retrieve all the values
+// RetrieveValues gets all the values from the backend in a map
+func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {
+	out := map[string]interface{}{}
+
+	schemaBytes, err := s.RetrieveSchema(app)
+	if err != nil {
+		return out, err
+	}
+
+	target, err := schema.New(schemaBytes)
+	if err != nil {
+		return out, err
+	}
+
+	backend, err := s.getBackendForSchema(target)
+	if err != nil {
+		return out, err
+	}
+
+	//  object, array, null, any
+	for name, field := range target.Fields() {
+		value, err := backend.Get(ensurePrefix(backend.Prefix, path.Join(app, name)))
+
+		if err != nil {
+			return out, err
+		}
+		if value.Value == nil {
+			continue
+		}
+
+		decoded, err := s.decodeValue(value.Value, field.Type)
+		if err != nil {
+			return out, fmt.Errorf("%s: %s", name, err)
+		}
+
+		if decoded != nil {
+			out[name] = decoded
+		}
+	}
+
+	return out, nil
+}
+
+func (s *Store) decodeValue(value []byte, typ string) (interface{}, error) {
+	stringed := string(value)
+
+	switch typ {
+	case "string", "any":
+		return stringed, nil
+
+	case "number":
+		return strconv.ParseFloat(stringed, 64)
+
+	case "integer":
+		return strconv.Atoi(stringed)
+
+	case "boolean":
+		return strconv.ParseBool(stringed)
+
+		// unsupported / ignored types
+	case "object", "array", "null":
+		return nil, nil
+
+	default:
+		return nil, fmt.Errorf(`don't know how to decode "%s"`, typ)
+	}
+}
 
 // retrieve one value
 

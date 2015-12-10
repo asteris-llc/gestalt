@@ -24,13 +24,16 @@ func (s *StoreValueSuite) SetupSuite() {
 	  "properties": {
 	    "required": {"type": "string"},
 	    "optional": {"type": "string"},
+	    "integer": {"type": "integer"},
+	    "boolean": {"type": "boolean"},
+	    "number": {"type": "number"},
 	    "default": {"type": "string", "default": "default"},
-      "nested": {
-        "type": "object",
-        "properties": {
-          "inner": {"type": "string", "default": "nested/inner"}
-        }
-      }
+	    "nested": {
+	      "type": "object",
+	      "properties": {
+	        "inner": {"type": "string", "default": "nested/inner"}
+	      }
+	    }
 	  },
 	  "required": ["required"]
 	}`)
@@ -46,6 +49,31 @@ func (s *StoreValueSuite) SetupTest() {
 	var err error
 	s.store, err = New([]*Backend{s.backend}, s.backend, s.backend)
 	s.Require().Nil(err)
+}
+
+// RetrieveValues
+
+func (s *StoreValueSuite) TestRetrieveValues() {
+	// set
+	s.mock.On("Get", s.prefix+"test/required").Return(&store.KVPair{Key: s.prefix + "test/required", Value: []byte("required")}, nil)
+	s.mock.On("Get", s.prefix+"test/number").Return(&store.KVPair{Key: s.prefix + "test/number", Value: []byte("3.14")}, nil)
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("3")}, nil)
+	s.mock.On("Get", s.prefix+"test/boolean").Return(&store.KVPair{Key: s.prefix + "test/boolean", Value: []byte("true")}, nil)
+
+	// not set
+	for _, name := range []string{"optional", "default", "nested", "nested/inner"} {
+		s.mock.On("Get", s.prefix+"test/"+name).Return(&store.KVPair{}, nil)
+	}
+
+	values, err := s.store.RetrieveValues("test")
+	s.Require().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
+
+	s.Assert().Equal("required", values["required"].(string))
+	s.Assert().Equal(3.14, values["number"].(float64))
+	s.Assert().Equal(3, values["integer"].(int))
+	s.Assert().True(values["boolean"].(bool))
 }
 
 // StoreValues
