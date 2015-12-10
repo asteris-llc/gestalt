@@ -2,35 +2,12 @@ package store
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/asteris-llc/gestalt/schema"
 	"github.com/docker/libkv/store"
 	"path"
 	"strconv"
 )
-
-var (
-	// ErrFieldRequired is returned when a field is required and receives a
-	// request to be deleted.
-	ErrFieldRequired = errors.New("field is required")
-
-	// ErrMissingKey is returned when a key is missing
-	ErrMissingKey = errors.New("no such key") // TODO: consistent missing key across project
-
-	// ErrMissingField is returned when a field is missing
-	ErrMissingField = errors.New("no such field") // TODO: probably move to schema?
-)
-
-// DecodeError is returned for errors in decoding values
-type DecodeError struct {
-	Field string
-	Err   error
-}
-
-func (d *DecodeError) Error() string {
-	return fmt.Sprintf("%s: %s", d.Field, d.Err)
-}
 
 // RetrieveValues gets all the values from the backend in a map
 func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {

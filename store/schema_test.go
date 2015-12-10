@@ -78,7 +78,7 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaAbsent() {
 	s.mock.On("Get", s.prefix+"absent").Return(&store.KVPair{}, nil)
 
 	schema, err := s.store.RetrieveSchema("absent")
-	s.Assert().Equal(err, ErrNotFound)
+	s.Assert().Equal(err, ErrMissingKey)
 	s.Assert().Equal(schema, []byte{})
 
 	s.mock.AssertExpectations(s.T())

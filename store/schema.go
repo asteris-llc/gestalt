@@ -27,10 +27,8 @@ func (s *Store) RetrieveSchema(name string) ([]byte, error) {
 
 	if err != nil {
 		return []byte{}, err
-	}
-
-	if pair.Key == "" {
-		return []byte{}, ErrNotFound
+	} else if pair == nil || len(pair.Value) == 0 {
+		return []byte{}, ErrMissingKey
 	}
 
 	return pair.Value, err

@@ -1,16 +1,7 @@
 package store
 
 import (
-	"errors"
 	"github.com/asteris-llc/gestalt/schema"
-)
-
-var (
-	// ErrNotFound is returned when a given schema is not found
-	ErrNotFound = errors.New("not found")
-
-	// ErrBackendNotFound is returned with a given backend is not found
-	ErrBackendNotFound = errors.New("backend not found")
 )
 
 // Store stores and validates schemas.
@@ -38,7 +29,7 @@ func (s *Store) getBackend(name string) (*Backend, error) {
 		}
 	}
 
-	return nil, ErrBackendNotFound
+	return nil, ErrMissingBackend
 }
 
 func (s *Store) getBackendForSchema(target *schema.Schema) (*Backend, error) {
