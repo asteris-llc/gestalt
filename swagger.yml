@@ -1,0 +1,196 @@
+swagger: '2.0'
+info:
+  version: 0.0.0
+  title: Gestalt API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+definitions:
+  schema:
+    description: |
+      A schema to validate keys and values against. This is a subset of [JSON
+      Schema](http://json-schema.org/), notably leaving out arrays (as they
+      don't map easily onto a K/V store.)
+    type: object
+    properties:
+      type:
+        type: string
+        # TODO: figure out how arrays map in this system
+        enum: [ string, integer, boolean, number, object ]
+        required: true
+      properties:
+        type: object
+        patternProperties:
+          '.+':
+            type:
+              $ref: "#/definitions/schema"
+      default: { type: any }
+      id: { type: string }
+      ref: { type: string }
+      required: { type: boolean }
+      name: { type: string }
+      title: { type: string }
+      description: { type: string }
+
+  schemas:
+    type: array
+    items:
+      $ref: "#/definitions/schema"
+
+  value:
+    type: object
+    properties:
+      key: { type: string }
+      value:
+        type:
+          anyOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: number
+
+  values:
+    type: object
+
+  error:
+    type: object
+    properties:
+      scope:
+        type: string
+        description: |
+          the scope of this error. For example, if a validation error is found
+          in a key, this field will be the key name.
+      error:
+        type: string
+        description: a text representation of the error
+
+  errors:
+    type: array
+    items:
+      $ref: "#/definitions/error"
+
+parameters:
+  - name: name
+    in: path
+    description: name of schema
+    required: true
+    type: string
+
+basePath: /v1
+paths:
+  /schemas:
+    get:
+      tags: [schema]
+      description: get a list of all the schemas
+      responses:
+        200:
+          description: contains a list of all schemas in the system
+          schema: { $ref: "#/definitions/schemas" }
+    post:
+      tags: [schema]
+      consumes: [application/schema+json]
+      description: create a new schema, or update an existing schema
+      parameters:
+        - name: schema
+          in: body
+          required: true
+          schema: { $ref: "#/definitions/schema" }
+      responses:
+        201:
+          description: the schema was successfully updated
+          schema: { $ref: "#/definitions/schema" }
+        405:
+          description: invalid input
+          schema: { $ref: "#/definitions/error" }
+
+  /schemas/{name}:
+    get:
+      tags: [schema]
+      description: get a single schema
+      responses:
+        200:
+          description: the schema specified by name
+          schema: { $ref "#/definitions/schema" }
+        404:
+          description: the specified schema was not found
+          schema: { $ref: "#/definitions/error" }
+    put:
+      tags: [schema]
+      description: update a schema
+      parameters:
+        - name: schema
+          in: body
+          required: true
+          schema: { $ref: "#/definitions/schema" }
+      responses:
+        200:
+          description: the schema was successfully updated
+          schema: { $ref: "#/definitions/schema" }
+        404:
+          description: the specified schema was not found
+          schema: { $ref: "#/definitions/error" }
+        405:
+          description: invalid input
+          schema: { $ref: "#/definitions/error" }
+
+  /schemas/{name}/values:
+    get:
+      tags: [value]
+      description: get the values for a schema
+      responses:
+        200:
+          description: retrieve a list of values
+          schema: { $ref: "#/definitions/values" }
+        404:
+          description: the specified schema was not found
+          schema: { $ref: "#/definitions/error" }
+    post:
+      tags: [value]
+      description: set a bunch of values at once
+      parameters:
+        - name: values
+          in: body
+          required: true
+          schema: { $ref: "#/definitions/values" }
+      responses:
+        200:
+          description: the values were updated
+          schema: { $ref: "#/definitions/values" }
+        404:
+          description: the specified schema was not found
+          schema: { $ref: "#/definitions/error" }
+        405:
+          description: invalid input
+          schema: { $ref: "#/definitions/errors" }
+
+  /schemas/{name}/values/{value}:
+    parameters:
+      - name: value
+        in: path
+        description: the key to set in the schema
+        required: true
+        type: string with slashes
+    get:
+      tags: [value]
+      description: get a single value
+      responses:
+        200:
+          description: retrieve a value
+          schema: { $ref: "#/definitions/value" }
+        404:
+          description: the specified schema or the value was not found
+          schema: { $ref: "#/definitions/error" }
+    put:
+      tags: [value]
+      description: update a single value
+      responses:
+        200:
+          description: the value was updated
+          schema: { $ref: "#/definitions/value" }
+        404:
+          description: the schema or the value was not found
+          schema: { $ref: "#/definitions/error" }
+        405:
+          description: invalid input
+          schema: { $ref: "#/definitions/error" }
