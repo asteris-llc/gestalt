@@ -25,7 +25,7 @@ definitions:
           '.+':
             type:
               $ref: "#/definitions/schema"
-      default: { type: any }
+      default: { description: should be of the type provided in the type field }
       id: { type: string }
       ref: { type: string }
       required: { type: boolean }
@@ -42,16 +42,12 @@ definitions:
     type: object
     properties:
       key: { type: string }
-      value:
-        type:
-          anyOf:
-            - type: string
-            - type: integer
-            - type: boolean
-            - type: number
+      value: { description: any JSON value }
 
   values:
-    type: object
+    type: array
+    items:
+      $ref: "#/definitions/value"
 
   error:
     type: object
@@ -71,11 +67,20 @@ definitions:
       $ref: "#/definitions/error"
 
 parameters:
-  - name: name
+  name:
+    name: name
     in: path
     description: name of schema
     required: true
     type: string
+
+responses:
+  notfound:
+    description: schema not found
+    schema: { $ref: "#/definitions/error" }
+  invalidinput:
+    description: invalid input
+    schema: { $ref: "#/definitions/error" }
 
 basePath: /v1
 paths:
@@ -84,7 +89,7 @@ paths:
       tags: [schema]
       description: get a list of all the schemas
       responses:
-        200:
+        "200":
           description: contains a list of all schemas in the system
           schema: { $ref: "#/definitions/schemas" }
     post:
@@ -97,24 +102,21 @@ paths:
           required: true
           schema: { $ref: "#/definitions/schema" }
       responses:
-        201:
+        "201":
           description: the schema was successfully updated
           schema: { $ref: "#/definitions/schema" }
-        405:
-          description: invalid input
-          schema: { $ref: "#/definitions/error" }
+        "405": { $ref: "#/responses/invalidinput" }
 
   /schemas/{name}:
+    parameters: [ $ref: "#/parameters/name" ]
     get:
       tags: [schema]
       description: get a single schema
       responses:
-        200:
+        "200":
           description: the schema specified by name
-          schema: { $ref "#/definitions/schema" }
-        404:
-          description: the specified schema was not found
-          schema: { $ref: "#/definitions/error" }
+          schema: { $ref: "#/definitions/schema" }
+        "404": { $ref: "#/responses/notfound" }
     put:
       tags: [schema]
       description: update a schema
@@ -124,27 +126,22 @@ paths:
           required: true
           schema: { $ref: "#/definitions/schema" }
       responses:
-        200:
+        "200":
           description: the schema was successfully updated
           schema: { $ref: "#/definitions/schema" }
-        404:
-          description: the specified schema was not found
-          schema: { $ref: "#/definitions/error" }
-        405:
-          description: invalid input
-          schema: { $ref: "#/definitions/error" }
+        "404": { $ref: "#/responses/notfound" }
+        "405": { $ref: "#/responses/invalidinput" }
 
   /schemas/{name}/values:
+    parameters: [ $ref: "#/parameters/name" ]
     get:
       tags: [value]
       description: get the values for a schema
       responses:
-        200:
+        "200":
           description: retrieve a list of values
           schema: { $ref: "#/definitions/values" }
-        404:
-          description: the specified schema was not found
-          schema: { $ref: "#/definitions/error" }
+        "404": { $ref: "#/responses/notfound" }
     post:
       tags: [value]
       description: set a bunch of values at once
@@ -154,43 +151,35 @@ paths:
           required: true
           schema: { $ref: "#/definitions/values" }
       responses:
-        200:
+        "200":
           description: the values were updated
           schema: { $ref: "#/definitions/values" }
-        404:
-          description: the specified schema was not found
-          schema: { $ref: "#/definitions/error" }
-        405:
-          description: invalid input
-          schema: { $ref: "#/definitions/errors" }
+        "404": { $ref: "#/responses/notfound" }
+        "405": { $ref: "#/responses/invalidinput" }
 
   /schemas/{name}/values/{value}:
     parameters:
+      - $ref: "#/parameters/name"
       - name: value
         in: path
-        description: the key to set in the schema
+        description: the key to set in the schema.
         required: true
-        type: string with slashes
+        type: string
+        format: full path, with slashes
     get:
       tags: [value]
       description: get a single value
       responses:
-        200:
+        "200":
           description: retrieve a value
           schema: { $ref: "#/definitions/value" }
-        404:
-          description: the specified schema or the value was not found
-          schema: { $ref: "#/definitions/error" }
+        "404": { $ref: "#/responses/notfound" }
     put:
       tags: [value]
       description: update a single value
       responses:
-        200:
+        "200":
           description: the value was updated
           schema: { $ref: "#/definitions/value" }
-        404:
-          description: the schema or the value was not found
-          schema: { $ref: "#/definitions/error" }
-        405:
-          description: invalid input
-          schema: { $ref: "#/definitions/error" }
+        "404": { $ref: "#/responses/notfound" }
+        "405": { $ref: "#/responses/invalidinput" }
