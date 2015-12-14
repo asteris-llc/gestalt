@@ -1,0 +1,19 @@
+{
+    "name": "Sample App",
+    "type": "object",
+    "properties": {
+        "email-host": {
+            "type": "string",
+            "required": true
+        },
+        "features": {
+            "type": "object",
+            "properties": {
+                "an-amazing-feature": {
+                    "type": "bool",
+                    "default": false
+                }
+            }
+        }
+    }
+}
