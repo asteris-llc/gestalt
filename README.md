@@ -37,9 +37,9 @@ backend by writing the following to `gestalt.toml`:
 port=3000
 
 [dev]
-backend=consul
-host=http://127.0.0.1:8500
-prefix=/dev
+backend="consul"
+host="http://127.0.0.1:8500"
+prefix="/dev"
 ```
 
 This means that on startup, there will be a store named "dev", whose keys will
