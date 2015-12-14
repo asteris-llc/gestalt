@@ -6,7 +6,7 @@ Gestalt sits in front of your K/V stores and enforces schemas.
 
 **Note that the instructional content in this README was written to define
 consumer requirements, and is not necessarily all implemented. Please follow
-[issue #1](https://github.com/asteris-llc/gestalt/issues/2) for updates.**
+[issue #2](https://github.com/asteris-llc/gestalt/issues/2) for updates.**
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
