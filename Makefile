@@ -1,8 +1,8 @@
 all: deps test
 
 deps:
-	go get -t ./...
-	go get github.com/raphael/goa/goagen
+	go get -v -t ./...
+	go get -v github.com/raphael/goa/goagen
 
 test:
 	go test -v ./...
