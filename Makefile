@@ -1,4 +1,11 @@
-all: web/web.go web/app web/client web/swagger
+all: deps test
+
+deps:
+	go get -t ./...
+	go get github.com/raphael/goa/goagen
+
+test:
+	go test -v ./...
 
 web/app: web/design/*.go
 	cd web && goagen app -d github.com/asteris-llc/gestalt/web/design
