@@ -211,8 +211,7 @@ func (ctx *DeleteSchemaContext) OK(resp []byte) error {
 // GetSchemaContext provides the schema get action context.
 type GetSchemaContext struct {
 	*goa.Context
-	Name    string
-	Payload *GetSchemaPayload
+	Name string
 }
 
 // NewGetSchemaContext parses the incoming request URL and body, performs validations and creates the
@@ -229,115 +228,7 @@ func NewGetSchemaContext(c *goa.Context) (*GetSchemaContext, error) {
 			}
 		}
 	}
-	p, err := NewGetSchemaPayload(c.Payload())
-	if err != nil {
-		return nil, err
-	}
-	ctx.Payload = p
 	return &ctx, err
-}
-
-// GetSchemaPayload is the schema get action payload.
-type GetSchemaPayload struct {
-	// a registered backend
-	Backend string
-	// human readable description
-	Description string
-	Fields      []*Field
-	Name        string
-	// root for this schema (backend prefix + name if not set)
-	Root string
-	// links to values
-	Values []string
-}
-
-// NewGetSchemaPayload instantiates a GetSchemaPayload from a raw request body.
-// It validates each field and returns an error if any validation fails.
-func NewGetSchemaPayload(raw interface{}) (p *GetSchemaPayload, err error) {
-	p, err = UnmarshalGetSchemaPayload(raw, err)
-	return
-}
-
-// UnmarshalGetSchemaPayload unmarshals and validates a raw interface{} into an instance of GetSchemaPayload
-func UnmarshalGetSchemaPayload(source interface{}, inErr error) (target *GetSchemaPayload, err error) {
-	err = inErr
-	if val, ok := source.(map[string]interface{}); ok {
-		target = new(GetSchemaPayload)
-		if v, ok := val["backend"]; ok {
-			var tmp9 string
-			if val, ok := v.(string); ok {
-				tmp9 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Backend`, v, "string", err)
-			}
-			target.Backend = tmp9
-		}
-		if v, ok := val["description"]; ok {
-			var tmp10 string
-			if val, ok := v.(string); ok {
-				tmp10 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Description`, v, "string", err)
-			}
-			target.Description = tmp10
-		}
-		if v, ok := val["fields"]; ok {
-			var tmp11 []*Field
-			if val, ok := v.([]interface{}); ok {
-				tmp11 = make([]*Field, len(val))
-				for tmp12, v := range val {
-					tmp11[tmp12], err = UnmarshalField(v, err)
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
-			}
-			target.Fields = tmp11
-		}
-		if v, ok := val["name"]; ok {
-			var tmp13 string
-			if val, ok := v.(string); ok {
-				tmp13 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Name`, v, "string", err)
-			}
-			if err == nil {
-				if tmp13 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp13); !ok {
-						err = goa.InvalidPatternError(`payload.Name`, tmp13, `[a-zA-Z0-9\-]+`, err)
-					}
-				}
-			}
-			target.Name = tmp13
-		}
-		if v, ok := val["root"]; ok {
-			var tmp14 string
-			if val, ok := v.(string); ok {
-				tmp14 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Root`, v, "string", err)
-			}
-			target.Root = tmp14
-		}
-		if v, ok := val["values"]; ok {
-			var tmp15 []string
-			if val, ok := v.([]interface{}); ok {
-				tmp15 = make([]string, len(val))
-				for tmp16, v := range val {
-					if val, ok := v.(string); ok {
-						tmp15[tmp16] = val
-					} else {
-						err = goa.InvalidAttributeTypeError(`payload.Values[*]`, v, "string", err)
-					}
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Values`, v, "array", err)
-			}
-			target.Values = tmp15
-		}
-	} else {
-		err = goa.InvalidAttributeTypeError(`payload`, source, "dictionary", err)
-	}
-	return
 }
 
 // NotFound sends a HTTP response with status code 404.
@@ -358,7 +249,6 @@ func (ctx *GetSchemaContext) OK(resp *AsterisGestaltSchema) error {
 // ListSchemaContext provides the schema list action context.
 type ListSchemaContext struct {
 	*goa.Context
-	Payload *ListSchemaPayload
 }
 
 // NewListSchemaContext parses the incoming request URL and body, performs validations and creates the
@@ -366,57 +256,16 @@ type ListSchemaContext struct {
 func NewListSchemaContext(c *goa.Context) (*ListSchemaContext, error) {
 	var err error
 	ctx := ListSchemaContext{Context: c}
-	p, err := NewListSchemaPayload(c.Payload())
-	if err != nil {
-		return nil, err
-	}
-	ctx.Payload = p
 	return &ctx, err
 }
 
-// ListSchemaPayload is the schema list action payload.
-type ListSchemaPayload struct {
-	// list of schemas
-	Schemas []*Schema
-}
-
-// NewListSchemaPayload instantiates a ListSchemaPayload from a raw request body.
-// It validates each field and returns an error if any validation fails.
-func NewListSchemaPayload(raw interface{}) (p *ListSchemaPayload, err error) {
-	p, err = UnmarshalListSchemaPayload(raw, err)
-	return
-}
-
-// UnmarshalListSchemaPayload unmarshals and validates a raw interface{} into an instance of ListSchemaPayload
-func UnmarshalListSchemaPayload(source interface{}, inErr error) (target *ListSchemaPayload, err error) {
-	err = inErr
-	if val, ok := source.(map[string]interface{}); ok {
-		target = new(ListSchemaPayload)
-		if v, ok := val["schemas"]; ok {
-			var tmp17 []*Schema
-			if val, ok := v.([]interface{}); ok {
-				tmp17 = make([]*Schema, len(val))
-				for tmp18, v := range val {
-					tmp17[tmp18], err = UnmarshalSchema(v, err)
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Schemas`, v, "array", err)
-			}
-			target.Schemas = tmp17
-		}
-	} else {
-		err = goa.InvalidAttributeTypeError(`payload`, source, "dictionary", err)
-	}
-	return
-}
-
 // OK sends a HTTP response with status code 200.
-func (ctx *ListSchemaContext) OK(resp *AsterisGestaltSchemas) error {
+func (ctx *ListSchemaContext) OK(resp AsterisGestaltSchemaCollection) error {
 	r, err := resp.Dump()
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schemas+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; type=collection; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
@@ -521,67 +370,67 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 	if val, ok := source.(map[string]interface{}); ok {
 		target = new(UpdateSchemaPayload)
 		if v, ok := val["backend"]; ok {
-			var tmp19 string
+			var tmp9 string
 			if val, ok := v.(string); ok {
-				tmp19 = val
+				tmp9 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Backend`, v, "string", err)
 			}
-			target.Backend = tmp19
+			target.Backend = tmp9
 		}
 		if v, ok := val["description"]; ok {
-			var tmp20 string
+			var tmp10 string
 			if val, ok := v.(string); ok {
-				tmp20 = val
+				tmp10 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Description`, v, "string", err)
 			}
-			target.Description = tmp20
+			target.Description = tmp10
 		}
 		if v, ok := val["fields"]; ok {
-			var tmp21 []*Field
+			var tmp11 []*Field
 			if val, ok := v.([]interface{}); ok {
-				tmp21 = make([]*Field, len(val))
-				for tmp22, v := range val {
-					tmp21[tmp22], err = UnmarshalField(v, err)
+				tmp11 = make([]*Field, len(val))
+				for tmp12, v := range val {
+					tmp11[tmp12], err = UnmarshalField(v, err)
 				}
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
 			}
-			target.Fields = tmp21
+			target.Fields = tmp11
 		}
 		if v, ok := val["name"]; ok {
-			var tmp23 string
+			var tmp13 string
 			if val, ok := v.(string); ok {
-				tmp23 = val
+				tmp13 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Name`, v, "string", err)
 			}
 			if err == nil {
-				if tmp23 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp23); !ok {
-						err = goa.InvalidPatternError(`payload.Name`, tmp23, `[a-zA-Z0-9\-]+`, err)
+				if tmp13 != "" {
+					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp13); !ok {
+						err = goa.InvalidPatternError(`payload.Name`, tmp13, `[a-zA-Z0-9\-]+`, err)
 					}
 				}
 			}
-			target.Name = tmp23
+			target.Name = tmp13
 		}
 		if v, ok := val["root"]; ok {
-			var tmp24 string
+			var tmp14 string
 			if val, ok := v.(string); ok {
-				tmp24 = val
+				tmp14 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Root`, v, "string", err)
 			}
-			target.Root = tmp24
+			target.Root = tmp14
 		}
 		if v, ok := val["values"]; ok {
-			var tmp25 []string
+			var tmp15 []string
 			if val, ok := v.([]interface{}); ok {
-				tmp25 = make([]string, len(val))
-				for tmp26, v := range val {
+				tmp15 = make([]string, len(val))
+				for tmp16, v := range val {
 					if val, ok := v.(string); ok {
-						tmp25[tmp26] = val
+						tmp15[tmp16] = val
 					} else {
 						err = goa.InvalidAttributeTypeError(`payload.Values[*]`, v, "string", err)
 					}
@@ -589,7 +438,7 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Values`, v, "array", err)
 			}
-			target.Values = tmp25
+			target.Values = tmp15
 		}
 	} else {
 		err = goa.InvalidAttributeTypeError(`payload`, source, "dictionary", err)
