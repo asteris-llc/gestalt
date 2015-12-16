@@ -9,9 +9,10 @@ import (
 	"github.com/raphael/goa"
 )
 
+// Run starts the server
 func Run(addr string) {
 	// Create service
-	service := goa.New("API")
+	service := goa.NewGraceful("gestalt")
 
 	// Setup middleware
 	service.Use(goa.RequestID())
