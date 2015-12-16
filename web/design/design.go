@@ -27,11 +27,11 @@ func init() {
 			Description("list the schemas present in the system")
 			Routing(GET("/"))
 
-			Payload(SchemasMedia)
-
 			Response(OK, func() {
 				Description("a list of schemas")
-				Media(SchemasMedia)
+				Media(CollectionOf(SchemaMedia, func() {
+					View("default")
+				}))
 			})
 		})
 
@@ -54,8 +54,6 @@ func init() {
 		Action("get", func() {
 			Description("get a single schema")
 			Routing(GET("/:name"))
-
-			Payload(SchemaMedia)
 
 			Params(nameParam)
 

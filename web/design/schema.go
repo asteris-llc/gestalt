@@ -50,14 +50,4 @@ var (
 		Attributes(fields)
 		View("default", fields)
 	})
-
-	// SchemasMedia is the plural of SchemaMedia
-	SchemasMedia = MediaType("application/vnd.asteris.gestalt.schemas+json", func() {
-		fields := func() {
-			Attribute("schemas", ArrayOf(Schema), "list of schemas")
-		}
-
-		Attributes(fields)
-		View("default", fields)
-	})
 )
