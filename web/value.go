@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/asteris-llc/gestalt/store"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/raphael/goa"
 )
@@ -8,11 +9,16 @@ import (
 // ValueController implements the value resource.
 type ValueController struct {
 	goa.Controller
+
+	store *store.Store
 }
 
 // NewValueController creates a value controller.
-func NewValueController(service goa.Service) app.ValueController {
-	return &ValueController{Controller: service.NewController("ValueController")}
+func NewValueController(service goa.Service, store *store.Store) app.ValueController {
+	return &ValueController{
+		Controller: service.NewController("ValueController"),
+		store:      store,
+	}
 }
 
 // Delete runs the delete action.

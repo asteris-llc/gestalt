@@ -11,7 +11,7 @@ var ServerCmd = &cobra.Command{
 	Use:   "server",
 	Short: "start the server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		web.Run(viper.GetString("address"))
+		web.Run(viper.GetString("address"), nil)
 		return nil
 	},
 }

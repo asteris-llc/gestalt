@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/asteris-llc/gestalt/store"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/raphael/goa"
 )
@@ -8,11 +9,16 @@ import (
 // SchemaController implements the schema resource.
 type SchemaController struct {
 	goa.Controller
+
+	store *store.Store
 }
 
 // NewSchemaController creates a schema controller.
-func NewSchemaController(service goa.Service) app.SchemaController {
-	return &SchemaController{Controller: service.NewController("SchemaController")}
+func NewSchemaController(service goa.Service, store *store.Store) app.SchemaController {
+	return &SchemaController{
+		Controller: service.NewController("SchemaController"),
+		store:      store,
+	}
 }
 
 // Create runs the create action.
