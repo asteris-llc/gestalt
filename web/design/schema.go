@@ -24,6 +24,7 @@ var (
 		Attribute("description", String, "human readable description")
 		Attribute("root", String, "root for this key (backend prefix + schema name if not set)")
 		Attribute("required", Boolean, "this field is required", func() { Default(false) })
+		Attribute("default", Any, "the default for this field")
 
 		Attribute("type", String, "type of value expected", func() {
 			Enum("string", "integer", "float", "boolean")
