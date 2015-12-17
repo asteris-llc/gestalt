@@ -3,6 +3,7 @@ package store
 import (
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 var (
@@ -27,5 +28,9 @@ type DecodeError struct {
 }
 
 func (d *DecodeError) Error() string {
+	if err, ok := d.Err.(*strconv.NumError); ok {
+		return fmt.Sprintf(`%s: parsing "%s": %s`, d.Field, err.Num, err.Err)
+	}
+
 	return fmt.Sprintf("%s: %s", d.Field, d.Err)
 }
