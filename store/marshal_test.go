@@ -7,6 +7,9 @@ import (
 
 func TestRoundTripString(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping round trip tests in short mode")
+	}
 
 	f := func(value string) bool {
 		marshalled := marshal(value)
@@ -23,6 +26,9 @@ func TestRoundTripString(t *testing.T) {
 
 func TestRoundtripInteger(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping round trip tests in short mode")
+	}
 
 	f := func(value int) bool {
 		marshalled := marshal(value)
@@ -39,6 +45,9 @@ func TestRoundtripInteger(t *testing.T) {
 
 func TestRoundtripFloat(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping round trip tests in short mode")
+	}
 
 	f := func(value float64) bool {
 		marshalled := marshal(value)
@@ -55,6 +64,9 @@ func TestRoundtripFloat(t *testing.T) {
 
 func TestRoundtripBool(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping round trip tests in short mode")
+	}
 
 	f := func(value bool) bool {
 		marshalled := marshal(value)
