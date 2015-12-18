@@ -33,6 +33,7 @@ func init() {
 					View("default")
 				}))
 			})
+			Response(InternalServerError)
 		})
 
 		Action("create", func() {
@@ -49,6 +50,7 @@ func init() {
 				Description("schema was accepted")
 				Media(Schema)
 			})
+			Response(InternalServerError)
 		})
 
 		Action("get", func() {
@@ -63,6 +65,7 @@ func init() {
 			})
 
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("update", func() {
@@ -81,6 +84,7 @@ func init() {
 				Media(Schema)
 			})
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("delete", func() {
@@ -94,6 +98,7 @@ func init() {
 
 			Response(OK, func() { Description("deleted") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("setDefaults", func() {
@@ -104,6 +109,7 @@ func init() {
 
 			Response(OK, func() { Description("defaults set") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 	})
 
@@ -119,6 +125,7 @@ func init() {
 
 			Response(OK, func() { Description("a list of values") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("show", func() {
@@ -129,6 +136,7 @@ func init() {
 
 			Response(OK, func() { Description("a single value") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("write", func() {
@@ -139,6 +147,7 @@ func init() {
 
 			Response(OK, func() { Description("value was written") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 
 		Action("delete", func() {
@@ -154,6 +163,7 @@ func init() {
 
 			Response(OK, func() { Description("value was deleted") })
 			Response(NotFound)
+			Response(InternalServerError)
 		})
 	})
 }

@@ -151,6 +151,11 @@ func (ctx *CreateSchemaContext) Created(resp *Schema) error {
 	return ctx.JSON(201, r)
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *CreateSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // DeleteSchemaContext provides the schema delete action context.
 type DeleteSchemaContext struct {
 	*goa.Context
@@ -186,6 +191,11 @@ func NewDeleteSchemaContext(c *goa.Context) (*DeleteSchemaContext, error) {
 	return &ctx, err
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *DeleteSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *DeleteSchemaContext) NotFound() error {
 	return ctx.Respond(404, nil)
@@ -219,6 +229,11 @@ func NewGetSchemaContext(c *goa.Context) (*GetSchemaContext, error) {
 	return &ctx, err
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *GetSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *GetSchemaContext) NotFound() error {
 	return ctx.Respond(404, nil)
@@ -245,6 +260,11 @@ func NewListSchemaContext(c *goa.Context) (*ListSchemaContext, error) {
 	var err error
 	ctx := ListSchemaContext{Context: c}
 	return &ctx, err
+}
+
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *ListSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
 }
 
 // OK sends a HTTP response with status code 200.
@@ -278,6 +298,11 @@ func NewSetDefaultsSchemaContext(c *goa.Context) (*SetDefaultsSchemaContext, err
 		}
 	}
 	return &ctx, err
+}
+
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *SetDefaultsSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
 }
 
 // NotFound sends a HTTP response with status code 404.
@@ -422,6 +447,11 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 	return
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *UpdateSchemaContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *UpdateSchemaContext) NotFound() error {
 	return ctx.Respond(404, nil)
@@ -482,6 +512,11 @@ func NewDeleteValueContext(c *goa.Context) (*DeleteValueContext, error) {
 	return &ctx, err
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *DeleteValueContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *DeleteValueContext) NotFound() error {
 	return ctx.Respond(404, nil)
@@ -513,6 +548,11 @@ func NewListValueContext(c *goa.Context) (*ListValueContext, error) {
 		}
 	}
 	return &ctx, err
+}
+
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *ListValueContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
 }
 
 // NotFound sends a HTTP response with status code 404.
@@ -558,6 +598,11 @@ func NewShowValueContext(c *goa.Context) (*ShowValueContext, error) {
 	return &ctx, err
 }
 
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *ShowValueContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *ShowValueContext) NotFound() error {
 	return ctx.Respond(404, nil)
@@ -599,6 +644,11 @@ func NewWriteValueContext(c *goa.Context) (*WriteValueContext, error) {
 		}
 	}
 	return &ctx, err
+}
+
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *WriteValueContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
 }
 
 // NotFound sends a HTTP response with status code 404.
