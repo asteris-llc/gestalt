@@ -104,6 +104,11 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
 			}
+			if err == nil {
+				if len(tmp3) < 1 {
+					err = goa.InvalidLengthError(`payload.Fields`, tmp3, 1, true, err)
+				}
+			}
 			target.Fields = tmp3
 		} else {
 			err = goa.MissingAttributeError(`payload`, "fields", err)
@@ -384,6 +389,11 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 				}
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
+			}
+			if err == nil {
+				if len(tmp9) < 1 {
+					err = goa.InvalidLengthError(`payload.Fields`, tmp9, 1, true, err)
+				}
 			}
 			target.Fields = tmp9
 		} else {
