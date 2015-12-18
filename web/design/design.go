@@ -123,7 +123,7 @@ func init() {
 
 		Action("show", func() {
 			Description("show a single value")
-			Routing(GET("/:value"))
+			Routing(GET("/*value"))
 
 			Params(func() { nameParam(); valueParam() })
 
@@ -133,7 +133,7 @@ func init() {
 
 		Action("write", func() {
 			Description("write a single value")
-			Routing(PUT("/:value"))
+			Routing(PUT("/*value"))
 
 			Params(func() { nameParam(); valueParam() })
 
@@ -144,7 +144,7 @@ func init() {
 		Action("delete", func() {
 			Description("delete a single value")
 
-			Routing(DELETE("/:value"))
+			Routing(DELETE("/*value"))
 
 			Params(func() {
 				nameParam()

@@ -108,8 +108,8 @@ func MountValueController(service goa.Service, ctrl ValueController) {
 		}
 		return ctrl.Delete(ctx)
 	}
-	router.Handle("DELETE", "/v1/schemas/:name/values/:value", ctrl.NewHTTPRouterHandle("Delete", h))
-	service.Info("mount", "ctrl", "Value", "action", "Delete", "route", "DELETE /v1/schemas/:name/values/:value")
+	router.Handle("DELETE", "/v1/schemas/:name/values/*value", ctrl.NewHTTPRouterHandle("Delete", h))
+	service.Info("mount", "ctrl", "Value", "action", "Delete", "route", "DELETE /v1/schemas/:name/values/*value")
 	h = func(c *goa.Context) error {
 		ctx, err := NewListValueContext(c)
 		if err != nil {
@@ -126,8 +126,8 @@ func MountValueController(service goa.Service, ctrl ValueController) {
 		}
 		return ctrl.Show(ctx)
 	}
-	router.Handle("GET", "/v1/schemas/:name/values/:value", ctrl.NewHTTPRouterHandle("Show", h))
-	service.Info("mount", "ctrl", "Value", "action", "Show", "route", "GET /v1/schemas/:name/values/:value")
+	router.Handle("GET", "/v1/schemas/:name/values/*value", ctrl.NewHTTPRouterHandle("Show", h))
+	service.Info("mount", "ctrl", "Value", "action", "Show", "route", "GET /v1/schemas/:name/values/*value")
 	h = func(c *goa.Context) error {
 		ctx, err := NewWriteValueContext(c)
 		if err != nil {
@@ -135,6 +135,6 @@ func MountValueController(service goa.Service, ctrl ValueController) {
 		}
 		return ctrl.Write(ctx)
 	}
-	router.Handle("PUT", "/v1/schemas/:name/values/:value", ctrl.NewHTTPRouterHandle("Write", h))
-	service.Info("mount", "ctrl", "Value", "action", "Write", "route", "PUT /v1/schemas/:name/values/:value")
+	router.Handle("PUT", "/v1/schemas/:name/values/*value", ctrl.NewHTTPRouterHandle("Write", h))
+	service.Info("mount", "ctrl", "Value", "action", "Write", "route", "PUT /v1/schemas/:name/values/*value")
 }
