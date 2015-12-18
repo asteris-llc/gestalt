@@ -4,5 +4,5 @@ defaultBackend="consul"
 [[backend]]
 type="consul"
 name="consul"
-prefix="/config"
-endpoints=["http://127.0.0.1:8500"]
+prefix="config"
+endpoints=["127.0.0.1:8500"]
