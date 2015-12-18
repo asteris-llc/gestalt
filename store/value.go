@@ -172,6 +172,7 @@ func (s *Store) StoreValue(schemaName, fieldName string, value interface{}) erro
 
 // DeleteValues deletes all the values
 func (s *Store) DeleteValues(schemaName string) error {
+	// TODO: derp, this won't work with arbitrarily rooted keys. Fix!
 	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return err
