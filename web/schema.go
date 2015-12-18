@@ -28,13 +28,15 @@ func (c *SchemaController) Create(ctx *app.CreateSchemaContext) error {
 	schema := app.Schema(*ctx.Payload)
 	err := c.store.StoreSchema(schema.Name, &schema)
 	if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	if ctx.HasSetDefaults && ctx.SetDefaults {
 		err = c.store.StoreDefaultValues(schema.Name)
 		if err != nil {
-			return err
+			ctx.Logger.Error(err.Error())
+			return ctx.InternalServerError()
 		}
 	}
 
@@ -48,7 +50,8 @@ func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
 		if err == store.ErrMissingKey {
 			return ctx.NotFound()
 		} else if err != nil {
-			return err
+			ctx.Logger.Error(err.Error())
+			return ctx.InternalServerError()
 		}
 	}
 
@@ -56,7 +59,8 @@ func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	return ctx.OK([]byte{})
@@ -68,7 +72,8 @@ func (c *SchemaController) Get(ctx *app.GetSchemaContext) error {
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	return ctx.OK(schema)
@@ -78,7 +83,8 @@ func (c *SchemaController) Get(ctx *app.GetSchemaContext) error {
 func (c *SchemaController) List(ctx *app.ListSchemaContext) error {
 	schemas, err := c.store.ListSchemas()
 	if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	return ctx.OK(schemas)
@@ -90,7 +96,8 @@ func (c *SchemaController) SetDefaults(ctx *app.SetDefaultsSchemaContext) error 
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	return ctx.OK([]byte{})
@@ -103,7 +110,8 @@ func (c *SchemaController) Update(ctx *app.UpdateSchemaContext) error {
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
-		return err
+		ctx.Logger.Error(err.Error())
+		return ctx.InternalServerError()
 	}
 
 	if ctx.HasSetDefaults && ctx.SetDefaults {
@@ -111,7 +119,8 @@ func (c *SchemaController) Update(ctx *app.UpdateSchemaContext) error {
 		if err == store.ErrMissingKey {
 			return ctx.NotFound()
 		} else if err != nil {
-			return err
+			ctx.Logger.Error(err.Error())
+			return ctx.InternalServerError()
 		}
 	}
 
