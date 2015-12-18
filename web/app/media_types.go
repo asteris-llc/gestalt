@@ -14,9 +14,9 @@ package app
 
 import "github.com/raphael/goa"
 
-// AsterisGestaltSchema media type
-// Identifier: application/vnd.asteris.gestalt.schema+json
-type AsterisGestaltSchema struct {
+// Schema media type
+// Identifier: application/vnd.schema+json
+type Schema struct {
 	// a registered backend
 	Backend string
 	// human readable description
@@ -25,28 +25,26 @@ type AsterisGestaltSchema struct {
 	Name        string
 	// root for this schema (backend prefix + name if not set)
 	Root string
-	// links to values
-	Values []string
 }
 
-// LoadAsterisGestaltSchema loads raw data into an instance of AsterisGestaltSchema running all the
+// LoadSchema loads raw data into an instance of Schema running all the
 // validations. Raw data is defined by data that the JSON unmarshaler would create when unmarshaling
 // into a variable of type interface{}. See https://golang.org/pkg/encoding/json/#Unmarshal for the
 // complete list of supported data types.
-func LoadAsterisGestaltSchema(raw interface{}) (res *AsterisGestaltSchema, err error) {
-	res, err = UnmarshalAsterisGestaltSchema(raw, err)
+func LoadSchema(raw interface{}) (res *Schema, err error) {
+	res, err = UnmarshalSchema(raw, err)
 	return
 }
 
-// Dump produces raw data from an instance of AsterisGestaltSchema running all the
-// validations. See LoadAsterisGestaltSchema for the definition of raw data.
-func (mt *AsterisGestaltSchema) Dump() (res map[string]interface{}, err error) {
-	res, err = MarshalAsterisGestaltSchema(mt, err)
+// Dump produces raw data from an instance of Schema running all the
+// validations. See LoadSchema for the definition of raw data.
+func (mt *Schema) Dump() (res map[string]interface{}, err error) {
+	res, err = MarshalSchema(mt, err)
 	return
 }
 
 // Validate validates the media type instance.
-func (mt *AsterisGestaltSchema) Validate() (err error) {
+func (mt *Schema) Validate() (err error) {
 	for _, e := range mt.Fields {
 		if e.Name != "" {
 			if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, e.Name); !ok {
@@ -67,114 +65,91 @@ func (mt *AsterisGestaltSchema) Validate() (err error) {
 	return
 }
 
-// MarshalAsterisGestaltSchema validates and renders an instance of AsterisGestaltSchema into a interface{}
+// MarshalSchema validates and renders an instance of Schema into a interface{}
 // using view "default".
-func MarshalAsterisGestaltSchema(source *AsterisGestaltSchema, inErr error) (target map[string]interface{}, err error) {
+func MarshalSchema(source *Schema, inErr error) (target map[string]interface{}, err error) {
 	err = inErr
 	if source.Name != "" {
 		if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, source.Name); !ok {
 			err = goa.InvalidPatternError(`.name`, source.Name, `[a-zA-Z0-9\-]+`, err)
 		}
 	}
-	tmp17 := map[string]interface{}{
+	tmp13 := map[string]interface{}{
 		"backend":     source.Backend,
 		"description": source.Description,
 		"name":        source.Name,
 		"root":        source.Root,
 	}
 	if source.Fields != nil {
-		tmp18 := make([]map[string]interface{}, len(source.Fields))
-		for tmp19, tmp20 := range source.Fields {
-			tmp18[tmp19], err = MarshalField(tmp20, err)
+		tmp14 := make([]map[string]interface{}, len(source.Fields))
+		for tmp15, tmp16 := range source.Fields {
+			tmp14[tmp15], err = MarshalField(tmp16, err)
 		}
-		tmp17["fields"] = tmp18
+		tmp13["fields"] = tmp14
 	}
-	if source.Values != nil {
-		tmp21 := make([]string, len(source.Values))
-		for tmp22, tmp23 := range source.Values {
-			tmp21[tmp22] = tmp23
-		}
-		tmp17["values"] = tmp21
-	}
-	target = tmp17
+	target = tmp13
 	return
 }
 
-// UnmarshalAsterisGestaltSchema unmarshals and validates a raw interface{} into an instance of AsterisGestaltSchema
-func UnmarshalAsterisGestaltSchema(source interface{}, inErr error) (target *AsterisGestaltSchema, err error) {
+// UnmarshalSchema unmarshals and validates a raw interface{} into an instance of Schema
+func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error) {
 	err = inErr
 	if val, ok := source.(map[string]interface{}); ok {
-		target = new(AsterisGestaltSchema)
+		target = new(Schema)
 		if v, ok := val["backend"]; ok {
-			var tmp24 string
+			var tmp17 string
 			if val, ok := v.(string); ok {
-				tmp24 = val
+				tmp17 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Backend`, v, "string", err)
 			}
-			target.Backend = tmp24
+			target.Backend = tmp17
 		}
 		if v, ok := val["description"]; ok {
-			var tmp25 string
+			var tmp18 string
 			if val, ok := v.(string); ok {
-				tmp25 = val
+				tmp18 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Description`, v, "string", err)
 			}
-			target.Description = tmp25
+			target.Description = tmp18
 		}
 		if v, ok := val["fields"]; ok {
-			var tmp26 []*Field
+			var tmp19 []*Field
 			if val, ok := v.([]interface{}); ok {
-				tmp26 = make([]*Field, len(val))
-				for tmp27, v := range val {
-					tmp26[tmp27], err = UnmarshalField(v, err)
+				tmp19 = make([]*Field, len(val))
+				for tmp20, v := range val {
+					tmp19[tmp20], err = UnmarshalField(v, err)
 				}
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Fields`, v, "array", err)
 			}
-			target.Fields = tmp26
+			target.Fields = tmp19
 		}
 		if v, ok := val["name"]; ok {
-			var tmp28 string
+			var tmp21 string
 			if val, ok := v.(string); ok {
-				tmp28 = val
+				tmp21 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Name`, v, "string", err)
 			}
 			if err == nil {
-				if tmp28 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp28); !ok {
-						err = goa.InvalidPatternError(`load.Name`, tmp28, `[a-zA-Z0-9\-]+`, err)
+				if tmp21 != "" {
+					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp21); !ok {
+						err = goa.InvalidPatternError(`load.Name`, tmp21, `[a-zA-Z0-9\-]+`, err)
 					}
 				}
 			}
-			target.Name = tmp28
+			target.Name = tmp21
 		}
 		if v, ok := val["root"]; ok {
-			var tmp29 string
+			var tmp22 string
 			if val, ok := v.(string); ok {
-				tmp29 = val
+				tmp22 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Root`, v, "string", err)
 			}
-			target.Root = tmp29
-		}
-		if v, ok := val["values"]; ok {
-			var tmp30 []string
-			if val, ok := v.([]interface{}); ok {
-				tmp30 = make([]string, len(val))
-				for tmp31, v := range val {
-					if val, ok := v.(string); ok {
-						tmp30[tmp31] = val
-					} else {
-						err = goa.InvalidAttributeTypeError(`load.Values[*]`, v, "string", err)
-					}
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Values`, v, "array", err)
-			}
-			target.Values = tmp30
+			target.Root = tmp22
 		}
 	} else {
 		err = goa.InvalidAttributeTypeError(`load`, source, "dictionary", err)
@@ -182,33 +157,33 @@ func UnmarshalAsterisGestaltSchema(source interface{}, inErr error) (target *Ast
 	return
 }
 
-// AsterisGestaltSchemaCollection media type
-// Identifier: application/vnd.asteris.gestalt.schema+json; type=collection
-type AsterisGestaltSchemaCollection []*AsterisGestaltSchema
+// SchemaCollection media type
+// Identifier: application/vnd.schema+json; type=collection
+type SchemaCollection []*Schema
 
-// LoadAsterisGestaltSchemaCollection loads raw data into an instance of AsterisGestaltSchemaCollection running all the
+// LoadSchemaCollection loads raw data into an instance of SchemaCollection running all the
 // validations. Raw data is defined by data that the JSON unmarshaler would create when unmarshaling
 // into a variable of type interface{}. See https://golang.org/pkg/encoding/json/#Unmarshal for the
 // complete list of supported data types.
-func LoadAsterisGestaltSchemaCollection(raw interface{}) (res AsterisGestaltSchemaCollection, err error) {
-	res, err = UnmarshalAsterisGestaltSchemaCollection(raw, err)
+func LoadSchemaCollection(raw interface{}) (res SchemaCollection, err error) {
+	res, err = UnmarshalSchemaCollection(raw, err)
 	return
 }
 
-// Dump produces raw data from an instance of AsterisGestaltSchemaCollection running all the
-// validations. See LoadAsterisGestaltSchemaCollection for the definition of raw data.
-func (mt AsterisGestaltSchemaCollection) Dump() (res []map[string]interface{}, err error) {
+// Dump produces raw data from an instance of SchemaCollection running all the
+// validations. See LoadSchemaCollection for the definition of raw data.
+func (mt SchemaCollection) Dump() (res []map[string]interface{}, err error) {
 	res = make([]map[string]interface{}, len(mt))
-	for i, tmp32 := range mt {
-		var tmp33 map[string]interface{}
-		tmp33, err = MarshalAsterisGestaltSchema(tmp32, err)
-		res[i] = tmp33
+	for i, tmp23 := range mt {
+		var tmp24 map[string]interface{}
+		tmp24, err = MarshalSchema(tmp23, err)
+		res[i] = tmp24
 	}
 	return
 }
 
 // Validate validates the media type instance.
-func (mt AsterisGestaltSchemaCollection) Validate() (err error) {
+func (mt SchemaCollection) Validate() (err error) {
 	for _, e := range mt {
 		for _, e := range e.Fields {
 			if e.Name != "" {
@@ -231,24 +206,24 @@ func (mt AsterisGestaltSchemaCollection) Validate() (err error) {
 	return
 }
 
-// MarshalAsterisGestaltSchemaCollection validates and renders an instance of AsterisGestaltSchemaCollection into a interface{}
+// MarshalSchemaCollection validates and renders an instance of SchemaCollection into a interface{}
 // using view "default".
-func MarshalAsterisGestaltSchemaCollection(source AsterisGestaltSchemaCollection, inErr error) (target []map[string]interface{}, err error) {
+func MarshalSchemaCollection(source SchemaCollection, inErr error) (target []map[string]interface{}, err error) {
 	err = inErr
 	target = make([]map[string]interface{}, len(source))
 	for i, res := range source {
-		target[i], err = MarshalAsterisGestaltSchema(res, err)
+		target[i], err = MarshalSchema(res, err)
 	}
 	return
 }
 
-// UnmarshalAsterisGestaltSchemaCollection unmarshals and validates a raw interface{} into an instance of AsterisGestaltSchemaCollection
-func UnmarshalAsterisGestaltSchemaCollection(source interface{}, inErr error) (target AsterisGestaltSchemaCollection, err error) {
+// UnmarshalSchemaCollection unmarshals and validates a raw interface{} into an instance of SchemaCollection
+func UnmarshalSchemaCollection(source interface{}, inErr error) (target SchemaCollection, err error) {
 	err = inErr
 	if val, ok := source.([]interface{}); ok {
-		target = make([]*AsterisGestaltSchema, len(val))
-		for tmp34, v := range val {
-			target[tmp34], err = UnmarshalAsterisGestaltSchema(v, err)
+		target = make([]*Schema, len(val))
+		for tmp25, v := range val {
+			target[tmp25], err = UnmarshalSchema(v, err)
 		}
 	} else {
 		err = goa.InvalidAttributeTypeError(`load`, source, "array", err)

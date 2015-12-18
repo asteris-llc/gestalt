@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	// Schema is the base schema for the whole app
-	Schema = Type("schema", func() {
+	// SchemaPayload is the base schema for the whole app
+	SchemaPayload = Type("SchemaPayload", func() {
 		Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-]+`) })
 		Attribute("description", String, "human readable description")
 		Attribute("root", String, "root for this schema (backend prefix + name if not set)")
@@ -35,9 +35,9 @@ var (
 		Required("name", "type")
 	})
 
-	// SchemaMedia is the media type for Schema
-	SchemaMedia = MediaType("application/vnd.asteris.gestalt.schema+json", func() {
-		Reference(Schema)
+	// SchemaMedia is the media type for SchemaPayload
+	SchemaMedia = MediaType("application/vnd.schema+json", func() {
+		Reference(SchemaPayload)
 
 		fields := func() {
 			Attribute("name")
@@ -45,8 +45,6 @@ var (
 			Attribute("root")
 			Attribute("backend")
 			Attribute("fields")
-
-			Attribute("values", ArrayOf(String), "links to values")
 		}
 
 		Attributes(fields)

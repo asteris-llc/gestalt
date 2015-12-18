@@ -60,8 +60,6 @@ type CreateSchemaPayload struct {
 	Name        string
 	// root for this schema (backend prefix + name if not set)
 	Root string
-	// links to values
-	Values []string
 }
 
 // NewCreateSchemaPayload instantiates a CreateSchemaPayload from a raw request body.
@@ -131,22 +129,6 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 			}
 			target.Root = tmp6
 		}
-		if v, ok := val["values"]; ok {
-			var tmp7 []string
-			if val, ok := v.([]interface{}); ok {
-				tmp7 = make([]string, len(val))
-				for tmp8, v := range val {
-					if val, ok := v.(string); ok {
-						tmp7[tmp8] = val
-					} else {
-						err = goa.InvalidAttributeTypeError(`payload.Values[*]`, v, "string", err)
-					}
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Values`, v, "array", err)
-			}
-			target.Values = tmp7
-		}
 	} else {
 		err = goa.InvalidAttributeTypeError(`payload`, source, "dictionary", err)
 	}
@@ -154,12 +136,12 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 }
 
 // Created sends a HTTP response with status code 201.
-func (ctx *CreateSchemaContext) Created(resp *AsterisGestaltSchema) error {
+func (ctx *CreateSchemaContext) Created(resp *Schema) error {
 	r, err := resp.Dump()
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
 	return ctx.JSON(201, r)
 }
 
@@ -237,12 +219,12 @@ func (ctx *GetSchemaContext) NotFound() error {
 }
 
 // OK sends a HTTP response with status code 200.
-func (ctx *GetSchemaContext) OK(resp *AsterisGestaltSchema) error {
+func (ctx *GetSchemaContext) OK(resp *Schema) error {
 	r, err := resp.Dump()
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
@@ -260,12 +242,12 @@ func NewListSchemaContext(c *goa.Context) (*ListSchemaContext, error) {
 }
 
 // OK sends a HTTP response with status code 200.
-func (ctx *ListSchemaContext) OK(resp AsterisGestaltSchemaCollection) error {
+func (ctx *ListSchemaContext) OK(resp SchemaCollection) error {
 	r, err := resp.Dump()
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; type=collection; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.schema+json; type=collection; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
@@ -353,8 +335,6 @@ type UpdateSchemaPayload struct {
 	Name        string
 	// root for this schema (backend prefix + name if not set)
 	Root string
-	// links to values
-	Values []string
 }
 
 // NewUpdateSchemaPayload instantiates a UpdateSchemaPayload from a raw request body.
@@ -370,75 +350,59 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 	if val, ok := source.(map[string]interface{}); ok {
 		target = new(UpdateSchemaPayload)
 		if v, ok := val["backend"]; ok {
-			var tmp9 string
+			var tmp7 string
 			if val, ok := v.(string); ok {
-				tmp9 = val
+				tmp7 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Backend`, v, "string", err)
 			}
-			target.Backend = tmp9
+			target.Backend = tmp7
 		}
 		if v, ok := val["description"]; ok {
-			var tmp10 string
+			var tmp8 string
 			if val, ok := v.(string); ok {
-				tmp10 = val
+				tmp8 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Description`, v, "string", err)
 			}
-			target.Description = tmp10
+			target.Description = tmp8
 		}
 		if v, ok := val["fields"]; ok {
-			var tmp11 []*Field
+			var tmp9 []*Field
 			if val, ok := v.([]interface{}); ok {
-				tmp11 = make([]*Field, len(val))
-				for tmp12, v := range val {
-					tmp11[tmp12], err = UnmarshalField(v, err)
+				tmp9 = make([]*Field, len(val))
+				for tmp10, v := range val {
+					tmp9[tmp10], err = UnmarshalField(v, err)
 				}
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
 			}
-			target.Fields = tmp11
+			target.Fields = tmp9
 		}
 		if v, ok := val["name"]; ok {
-			var tmp13 string
+			var tmp11 string
 			if val, ok := v.(string); ok {
-				tmp13 = val
+				tmp11 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Name`, v, "string", err)
 			}
 			if err == nil {
-				if tmp13 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp13); !ok {
-						err = goa.InvalidPatternError(`payload.Name`, tmp13, `[a-zA-Z0-9\-]+`, err)
+				if tmp11 != "" {
+					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp11); !ok {
+						err = goa.InvalidPatternError(`payload.Name`, tmp11, `[a-zA-Z0-9\-]+`, err)
 					}
 				}
 			}
-			target.Name = tmp13
+			target.Name = tmp11
 		}
 		if v, ok := val["root"]; ok {
-			var tmp14 string
+			var tmp12 string
 			if val, ok := v.(string); ok {
-				tmp14 = val
+				tmp12 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`payload.Root`, v, "string", err)
 			}
-			target.Root = tmp14
-		}
-		if v, ok := val["values"]; ok {
-			var tmp15 []string
-			if val, ok := v.([]interface{}); ok {
-				tmp15 = make([]string, len(val))
-				for tmp16, v := range val {
-					if val, ok := v.(string); ok {
-						tmp15[tmp16] = val
-					} else {
-						err = goa.InvalidAttributeTypeError(`payload.Values[*]`, v, "string", err)
-					}
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`payload.Values`, v, "array", err)
-			}
-			target.Values = tmp15
+			target.Root = tmp12
 		}
 	} else {
 		err = goa.InvalidAttributeTypeError(`payload`, source, "dictionary", err)
@@ -452,12 +416,12 @@ func (ctx *UpdateSchemaContext) NotFound() error {
 }
 
 // OK sends a HTTP response with status code 200.
-func (ctx *UpdateSchemaContext) OK(resp *AsterisGestaltSchema) error {
+func (ctx *UpdateSchemaContext) OK(resp *Schema) error {
 	r, err := resp.Dump()
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
