@@ -6,6 +6,8 @@ import (
 	"github.com/raphael/goa"
 )
 
+// TODO: more realistic error handling
+
 // SchemaController implements the schema resource.
 type SchemaController struct {
 	goa.Controller
@@ -23,30 +25,83 @@ func NewSchemaController(service goa.Service, store *store.Store) app.SchemaCont
 
 // Create runs the create action.
 func (c *SchemaController) Create(ctx *app.CreateSchemaContext) error {
-	return nil
+	schema := app.Schema(*ctx.Payload)
+	err := c.store.StoreSchema(schema.Name, &schema)
+	if err != nil {
+		return err
+	}
+
+	if ctx.HasSetDefaults && ctx.SetDefaults {
+		err = c.store.StoreDefaultValues(schema.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return ctx.Created(&schema)
 }
 
 // Delete runs the delete action.
 func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
-	return nil
+	if ctx.HasDeleteKeys && ctx.DeleteKeys {
+		err := c.store.DeleteValues(ctx.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := c.store.DeleteSchema(ctx.Name)
+	if err != nil {
+		return err
+	}
+
+	return ctx.OK([]byte{})
 }
 
 // Get runs the get action.
 func (c *SchemaController) Get(ctx *app.GetSchemaContext) error {
-	return nil
+	schema, err := c.store.RetrieveSchema(ctx.Name)
+	if err != nil {
+		return err
+	}
+
+	return ctx.OK(schema)
 }
 
 // List runs the list action.
 func (c *SchemaController) List(ctx *app.ListSchemaContext) error {
-	return nil
+	schemas, err := c.store.ListSchemas()
+	if err != nil {
+		return err
+	}
+
+	return ctx.OK(schemas)
 }
 
 // SetDefaults runs the setDefaults action.
 func (c *SchemaController) SetDefaults(ctx *app.SetDefaultsSchemaContext) error {
-	return nil
+	err := c.store.StoreDefaultValues(ctx.Name)
+	if err != nil {
+		return err
+	}
+
+	return ctx.OK([]byte{})
 }
 
 // Update runs the update action.
 func (c *SchemaController) Update(ctx *app.UpdateSchemaContext) error {
-	return nil
+	schema := app.Schema(*ctx.Payload)
+	err := c.store.StoreSchema(schema.Name, &schema)
+	if err != nil {
+		return err
+	}
+
+	if ctx.HasSetDefaults && ctx.SetDefaults {
+		err = c.store.StoreDefaultValues(schema.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return ctx.OK(&schema)
 }
