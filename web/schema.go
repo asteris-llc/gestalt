@@ -45,13 +45,17 @@ func (c *SchemaController) Create(ctx *app.CreateSchemaContext) error {
 func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
 	if ctx.HasDeleteKeys && ctx.DeleteKeys {
 		err := c.store.DeleteValues(ctx.Name)
-		if err != nil {
+		if err == store.ErrMissingKey {
+			return ctx.NotFound()
+		} else if err != nil {
 			return err
 		}
 	}
 
 	err := c.store.DeleteSchema(ctx.Name)
-	if err != nil {
+	if err == store.ErrMissingKey {
+		return ctx.NotFound()
+	} else if err != nil {
 		return err
 	}
 
@@ -61,7 +65,9 @@ func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
 // Get runs the get action.
 func (c *SchemaController) Get(ctx *app.GetSchemaContext) error {
 	schema, err := c.store.RetrieveSchema(ctx.Name)
-	if err != nil {
+	if err == store.ErrMissingKey {
+		return ctx.NotFound()
+	} else if err != nil {
 		return err
 	}
 
@@ -81,7 +87,9 @@ func (c *SchemaController) List(ctx *app.ListSchemaContext) error {
 // SetDefaults runs the setDefaults action.
 func (c *SchemaController) SetDefaults(ctx *app.SetDefaultsSchemaContext) error {
 	err := c.store.StoreDefaultValues(ctx.Name)
-	if err != nil {
+	if err == store.ErrMissingKey {
+		return ctx.NotFound()
+	} else if err != nil {
 		return err
 	}
 
@@ -92,13 +100,17 @@ func (c *SchemaController) SetDefaults(ctx *app.SetDefaultsSchemaContext) error 
 func (c *SchemaController) Update(ctx *app.UpdateSchemaContext) error {
 	schema := app.Schema(*ctx.Payload)
 	err := c.store.StoreSchema(schema.Name, &schema)
-	if err != nil {
+	if err == store.ErrMissingKey {
+		return ctx.NotFound()
+	} else if err != nil {
 		return err
 	}
 
 	if ctx.HasSetDefaults && ctx.SetDefaults {
 		err = c.store.StoreDefaultValues(schema.Name)
-		if err != nil {
+		if err == store.ErrMissingKey {
+			return ctx.NotFound()
+		} else if err != nil {
 			return err
 		}
 	}
