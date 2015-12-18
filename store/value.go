@@ -10,7 +10,9 @@ import (
 // setup is a convienence method for getting a valid schema and backend
 func (s *Store) setup(schemaName string) (*app.Schema, *Backend, error) {
 	schema, err := s.RetrieveSchema(schemaName)
-	if err != nil {
+	if err == store.ErrKeyNotFound {
+		return nil, nil, ErrMissingKey
+	} else if err != nil {
 		return nil, nil, err
 	}
 
@@ -33,10 +35,10 @@ func (s *Store) RetrieveValues(schemaName string) (map[string]interface{}, error
 
 	for _, field := range schema.Fields {
 		value, err := backend.Get(backend.FieldKey(schema, field))
-		if err != nil {
+		if err == store.ErrKeyNotFound {
+			return out, ErrMissingKey
+		} else if err != nil {
 			return out, err
-		} else if value == nil || len(value.Value) == 0 {
-			continue
 		}
 
 		decoded, err := unmarshal(value.Value, field.Type)
@@ -69,10 +71,10 @@ func (s *Store) RetrieveValue(schemaName, fieldName string) (interface{}, error)
 	}
 
 	raw, err := backend.Get(backend.FieldKey(schema, field))
-	if err != nil {
-		return nil, err
-	} else if raw == nil || len(raw.Value) == 0 {
+	if err == store.ErrKeyNotFound {
 		return nil, ErrMissingKey
+	} else if err != nil {
+		return nil, err
 	}
 
 	out, err := unmarshal(raw.Value, field.Type)

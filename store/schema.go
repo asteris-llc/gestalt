@@ -29,10 +29,10 @@ func (s *Store) StoreSchema(name string, schema *app.Schema) error {
 func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
 	pair, err := s.schemaStore.Get(ensurePrefix(s.schemaStore.Prefix, name))
 
-	if err != nil {
-		return nil, err
-	} else if pair == nil || len(pair.Value) == 0 {
+	if err == store.ErrKeyNotFound {
 		return nil, ErrMissingKey
+	} else if err != nil {
+		return nil, err
 	}
 
 	schema := &app.Schema{}
@@ -46,13 +46,15 @@ func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
 
 // ListSchemas gets a list of schemas
 func (s *Store) ListSchemas() ([]*app.Schema, error) {
+	schemas := []*app.Schema{}
 	raws, err := s.schemaStore.List(s.schemaStore.Prefix)
 
-	if err != nil {
+	if err == store.ErrKeyNotFound {
+		return schemas, nil
+	} else if err != nil {
 		return nil, err
 	}
 
-	schemas := []*app.Schema{}
 	for _, raw := range raws {
 		schema := &app.Schema{}
 		err = json.Unmarshal(raw.Value, schema)

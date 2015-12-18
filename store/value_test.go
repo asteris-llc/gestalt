@@ -85,7 +85,7 @@ func (s *StoreValueSuite) TestRetrieveValueInvalid() {
 }
 
 func (s *StoreValueSuite) TestRetrieveValueMissing() {
-	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{}, nil)
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{}, store.ErrKeyNotFound)
 
 	_, err := s.store.RetrieveValue("test", "integer")
 	s.Assert().Equal(ErrMissingKey, err)
