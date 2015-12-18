@@ -39,7 +39,7 @@ func init() {
 			Description("write a schema to the backend")
 			Routing(POST("/"))
 
-			Payload(SchemaMedia)
+			Payload(SchemaPayload)
 
 			Params(func() {
 				Param("setDefaults", Boolean, "set defaults when creating", func() { Default(true) })
@@ -69,7 +69,7 @@ func init() {
 			Description("update an existing schema")
 			Routing(PUT("/:name"))
 
-			Payload(SchemaMedia)
+			Payload(SchemaPayload)
 
 			Params(func() {
 				nameParam()

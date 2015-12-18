@@ -82,6 +82,8 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 				err = goa.InvalidAttributeTypeError(`payload.Backend`, v, "string", err)
 			}
 			target.Backend = tmp1
+		} else {
+			err = goa.MissingAttributeError(`payload`, "backend", err)
 		}
 		if v, ok := val["description"]; ok {
 			var tmp2 string
@@ -103,6 +105,8 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
 			}
 			target.Fields = tmp3
+		} else {
+			err = goa.MissingAttributeError(`payload`, "fields", err)
 		}
 		if v, ok := val["name"]; ok {
 			var tmp5 string
@@ -119,6 +123,8 @@ func UnmarshalCreateSchemaPayload(source interface{}, inErr error) (target *Crea
 				}
 			}
 			target.Name = tmp5
+		} else {
+			err = goa.MissingAttributeError(`payload`, "name", err)
 		}
 		if v, ok := val["root"]; ok {
 			var tmp6 string
@@ -357,6 +363,8 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 				err = goa.InvalidAttributeTypeError(`payload.Backend`, v, "string", err)
 			}
 			target.Backend = tmp7
+		} else {
+			err = goa.MissingAttributeError(`payload`, "backend", err)
 		}
 		if v, ok := val["description"]; ok {
 			var tmp8 string
@@ -378,6 +386,8 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 				err = goa.InvalidAttributeTypeError(`payload.Fields`, v, "array", err)
 			}
 			target.Fields = tmp9
+		} else {
+			err = goa.MissingAttributeError(`payload`, "fields", err)
 		}
 		if v, ok := val["name"]; ok {
 			var tmp11 string
@@ -394,6 +404,8 @@ func UnmarshalUpdateSchemaPayload(source interface{}, inErr error) (target *Upda
 				}
 			}
 			target.Name = tmp11
+		} else {
+			err = goa.MissingAttributeError(`payload`, "name", err)
 		}
 		if v, ok := val["root"]; ok {
 			var tmp12 string
