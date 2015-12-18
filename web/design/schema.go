@@ -31,7 +31,9 @@ var (
 			Attribute("root", String, "root for this schema (backend prefix + name if not set)")
 			Attribute("backend", String, "a registered backend")
 
-			Attribute("fields", ArrayOf(Field), func() { MinLength(1) })
+			// this currently generates invalid code
+			// Attribute("fields", ArrayOf(Field), func() { MinLength(1) })
+			Attribute("fields", ArrayOf(Field))
 
 			Required("backend", "name", "fields")
 		}
