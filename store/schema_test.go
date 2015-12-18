@@ -106,6 +106,18 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 	s.mock.AssertExpectations(s.T())
 }
 
+// LIST
+
+func (s *StoreSchemaSuite) TestListSchema() {
+	s.mock.On("List", s.prefix).Return([]*store.KVPair{{Key: s.prefix + "present", Value: s.schemaBytes}}, nil)
+
+	schemas, err := s.store.ListSchemas()
+	s.Assert().Nil(err)
+	s.Assert().Equal(s.schema, schemas)
+
+	s.mock.AssertExpectations(s.T())
+}
+
 // DELETE
 
 func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {

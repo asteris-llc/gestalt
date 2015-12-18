@@ -6,8 +6,8 @@ import (
 	"github.com/docker/libkv/store"
 )
 
-// StoreSchema stores or updates a schema as a JSON blob and makes sure that the
-// schema is valid before storage.
+// StoreSchema stores or updates a schema and makes sure that the schema is
+// valid before storage.
 func (s *Store) StoreSchema(name string, schema *app.Schema) error {
 	// make sure before we store this schema that the name matches
 	schema.Name = name
@@ -25,7 +25,7 @@ func (s *Store) StoreSchema(name string, schema *app.Schema) error {
 	)
 }
 
-// RetrieveSchema gets a schema as a JSON blob
+// RetrieveSchema gets a schema
 func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
 	pair, err := s.schemaStore.Get(ensurePrefix(s.schemaStore.Prefix, name))
 
@@ -42,6 +42,28 @@ func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
 	}
 
 	return schema, nil
+}
+
+// ListSchemas gets a list of schemas
+func (s *Store) ListSchemas() ([]*app.Schema, error) {
+	raws, err := s.schemaStore.List(s.schemaStore.Prefix)
+
+	if err != nil {
+		return nil, err
+	}
+
+	schemas := []*app.Schema{}
+	for _, raw := range raws {
+		var schema *app.Schema
+		err = json.Unmarshal(raw.Value, schema)
+		if err != nil {
+			return schemas, err
+		}
+
+		schemas = append(schemas, schema)
+	}
+
+	return schemas, nil
 }
 
 // DeleteSchema removes a schema from the K/V tree
