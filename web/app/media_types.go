@@ -45,6 +45,16 @@ func (mt *Schema) Dump() (res map[string]interface{}, err error) {
 
 // Validate validates the media type instance.
 func (mt *Schema) Validate() (err error) {
+	if mt.Backend == "" {
+		err = goa.MissingAttributeError(`response`, "backend", err)
+	}
+	if mt.Name == "" {
+		err = goa.MissingAttributeError(`response`, "name", err)
+	}
+	if mt.Fields == nil {
+		err = goa.MissingAttributeError(`response`, "fields", err)
+	}
+
 	for _, e := range mt.Fields {
 		if e.Name != "" {
 			if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, e.Name); !ok {
@@ -57,10 +67,8 @@ func (mt *Schema) Validate() (err error) {
 			}
 		}
 	}
-	if mt.Name != "" {
-		if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, mt.Name); !ok {
-			err = goa.InvalidPatternError(`response.name`, mt.Name, `[a-zA-Z0-9\-]+`, err)
-		}
+	if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, mt.Name); !ok {
+		err = goa.InvalidPatternError(`response.name`, mt.Name, `[a-zA-Z0-9\-]+`, err)
 	}
 	return
 }
@@ -69,25 +77,36 @@ func (mt *Schema) Validate() (err error) {
 // using view "default".
 func MarshalSchema(source *Schema, inErr error) (target map[string]interface{}, err error) {
 	err = inErr
-	if source.Name != "" {
-		if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, source.Name); !ok {
-			err = goa.InvalidPatternError(`.name`, source.Name, `[a-zA-Z0-9\-]+`, err)
+	if source.Backend == "" {
+		err = goa.MissingAttributeError(``, "backend", err)
+	}
+
+	if err == nil {
+		if source.Backend == "" {
+			err = goa.MissingAttributeError(``, "backend", err)
+		}
+		if err == nil {
+			if source.Name != "" {
+				if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, source.Name); !ok {
+					err = goa.InvalidPatternError(`.name`, source.Name, `[a-zA-Z0-9\-]+`, err)
+				}
+			}
+			tmp13 := map[string]interface{}{
+				"backend":     source.Backend,
+				"description": source.Description,
+				"name":        source.Name,
+				"root":        source.Root,
+			}
+			if source.Fields != nil {
+				tmp14 := make([]map[string]interface{}, len(source.Fields))
+				for tmp15, tmp16 := range source.Fields {
+					tmp14[tmp15], err = MarshalField(tmp16, err)
+				}
+				tmp13["fields"] = tmp14
+			}
+			target = tmp13
 		}
 	}
-	tmp13 := map[string]interface{}{
-		"backend":     source.Backend,
-		"description": source.Description,
-		"name":        source.Name,
-		"root":        source.Root,
-	}
-	if source.Fields != nil {
-		tmp14 := make([]map[string]interface{}, len(source.Fields))
-		for tmp15, tmp16 := range source.Fields {
-			tmp14[tmp15], err = MarshalField(tmp16, err)
-		}
-		tmp13["fields"] = tmp14
-	}
-	target = tmp13
 	return
 }
 
@@ -104,6 +123,8 @@ func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error
 				err = goa.InvalidAttributeTypeError(`load.Backend`, v, "string", err)
 			}
 			target.Backend = tmp17
+		} else {
+			err = goa.MissingAttributeError(`load`, "backend", err)
 		}
 		if v, ok := val["description"]; ok {
 			var tmp18 string
@@ -125,6 +146,8 @@ func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error
 				err = goa.InvalidAttributeTypeError(`load.Fields`, v, "array", err)
 			}
 			target.Fields = tmp19
+		} else {
+			err = goa.MissingAttributeError(`load`, "fields", err)
 		}
 		if v, ok := val["name"]; ok {
 			var tmp21 string
@@ -141,6 +164,8 @@ func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error
 				}
 			}
 			target.Name = tmp21
+		} else {
+			err = goa.MissingAttributeError(`load`, "name", err)
 		}
 		if v, ok := val["root"]; ok {
 			var tmp22 string

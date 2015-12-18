@@ -29,7 +29,7 @@ func init() {
 
 			Response(OK, func() {
 				Description("a list of schemas")
-				Media(CollectionOf(SchemaMedia, func() {
+				Media(CollectionOf(Schema, func() {
 					View("default")
 				}))
 			})
@@ -39,7 +39,7 @@ func init() {
 			Description("write a schema to the backend")
 			Routing(POST("/"))
 
-			Payload(SchemaPayload)
+			Payload(Schema)
 
 			Params(func() {
 				Param("setDefaults", Boolean, "set defaults when creating", func() { Default(true) })
@@ -47,7 +47,7 @@ func init() {
 
 			Response(Created, func() {
 				Description("schema was accepted")
-				Media(SchemaMedia)
+				Media(Schema)
 			})
 		})
 
@@ -59,7 +59,7 @@ func init() {
 
 			Response(OK, func() {
 				Description("a single schema")
-				Media(SchemaMedia)
+				Media(Schema)
 			})
 
 			Response(NotFound)
@@ -69,7 +69,7 @@ func init() {
 			Description("update an existing schema")
 			Routing(PUT("/:name"))
 
-			Payload(SchemaPayload)
+			Payload(Schema)
 
 			Params(func() {
 				nameParam()
@@ -78,7 +78,7 @@ func init() {
 
 			Response(OK, func() {
 				Description("update accepted")
-				Media(SchemaMedia)
+				Media(Schema)
 			})
 			Response(NotFound)
 		})

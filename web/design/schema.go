@@ -6,18 +6,6 @@ import (
 )
 
 var (
-	// SchemaPayload is the base schema for the whole app
-	SchemaPayload = Type("SchemaPayload", func() {
-		Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-]+`) })
-		Attribute("description", String, "human readable description")
-		Attribute("root", String, "root for this schema (backend prefix + name if not set)")
-		Attribute("backend", String, "a registered backend")
-
-		Attribute("fields", ArrayOf(Field))
-
-		Required("backend", "name", "fields")
-	})
-
 	// Field is a single field in the schema
 	Field = Type("field", func() {
 		Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-/]+`) })
@@ -35,16 +23,17 @@ var (
 		Required("name", "type")
 	})
 
-	// SchemaMedia is the media type for SchemaPayload
-	SchemaMedia = MediaType("application/vnd.schema+json", func() {
-		Reference(SchemaPayload)
-
+	// Schema is the media type for SchemaPayload
+	Schema = MediaType("application/vnd.schema+json", func() {
 		fields := func() {
-			Attribute("name")
-			Attribute("description")
-			Attribute("root")
-			Attribute("backend")
-			Attribute("fields")
+			Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-]+`) })
+			Attribute("description", String, "human readable description")
+			Attribute("root", String, "root for this schema (backend prefix + name if not set)")
+			Attribute("backend", String, "a registered backend")
+
+			Attribute("fields", ArrayOf(Field))
+
+			Required("backend", "name", "fields")
 		}
 
 		Attributes(fields)

@@ -16,136 +16,6 @@ import (
 	"github.com/raphael/goa"
 )
 
-// SchemaPayload type
-type SchemaPayload struct {
-	// a registered backend
-	Backend string
-	// human readable description
-	Description string
-	Fields      []*Field
-	Name        string
-	// root for this schema (backend prefix + name if not set)
-	Root string
-}
-
-// MarshalSchemaPayload validates and renders an instance of SchemaPayload into a interface{}
-func MarshalSchemaPayload(source *SchemaPayload, inErr error) (target map[string]interface{}, err error) {
-	err = inErr
-	if source.Backend == "" {
-		err = goa.MissingAttributeError(``, "backend", err)
-	}
-	if source.Name == "" {
-		err = goa.MissingAttributeError(``, "name", err)
-	}
-	if source.Fields == nil {
-		err = goa.MissingAttributeError(``, "fields", err)
-	}
-
-	if err == nil {
-		if source.Backend == "" {
-			err = goa.MissingAttributeError(``, "backend", err)
-		}
-		if source.Name == "" {
-			err = goa.MissingAttributeError(``, "name", err)
-		}
-		if source.Fields == nil {
-			err = goa.MissingAttributeError(``, "fields", err)
-		}
-		if err == nil {
-			if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, source.Name); !ok {
-				err = goa.InvalidPatternError(`.name`, source.Name, `[a-zA-Z0-9\-]+`, err)
-			}
-			tmp26 := map[string]interface{}{
-				"backend":     source.Backend,
-				"description": source.Description,
-				"name":        source.Name,
-				"root":        source.Root,
-			}
-			if source.Fields != nil {
-				tmp27 := make([]map[string]interface{}, len(source.Fields))
-				for tmp28, tmp29 := range source.Fields {
-					tmp27[tmp28], err = MarshalField(tmp29, err)
-				}
-				tmp26["fields"] = tmp27
-			}
-			target = tmp26
-		}
-	}
-	return
-}
-
-// UnmarshalSchemaPayload unmarshals and validates a raw interface{} into an instance of SchemaPayload
-func UnmarshalSchemaPayload(source interface{}, inErr error) (target *SchemaPayload, err error) {
-	err = inErr
-	if val, ok := source.(map[string]interface{}); ok {
-		target = new(SchemaPayload)
-		if v, ok := val["backend"]; ok {
-			var tmp30 string
-			if val, ok := v.(string); ok {
-				tmp30 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Backend`, v, "string", err)
-			}
-			target.Backend = tmp30
-		} else {
-			err = goa.MissingAttributeError(`load`, "backend", err)
-		}
-		if v, ok := val["description"]; ok {
-			var tmp31 string
-			if val, ok := v.(string); ok {
-				tmp31 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Description`, v, "string", err)
-			}
-			target.Description = tmp31
-		}
-		if v, ok := val["fields"]; ok {
-			var tmp32 []*Field
-			if val, ok := v.([]interface{}); ok {
-				tmp32 = make([]*Field, len(val))
-				for tmp33, v := range val {
-					tmp32[tmp33], err = UnmarshalField(v, err)
-				}
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Fields`, v, "array", err)
-			}
-			target.Fields = tmp32
-		} else {
-			err = goa.MissingAttributeError(`load`, "fields", err)
-		}
-		if v, ok := val["name"]; ok {
-			var tmp34 string
-			if val, ok := v.(string); ok {
-				tmp34 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Name`, v, "string", err)
-			}
-			if err == nil {
-				if tmp34 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, tmp34); !ok {
-						err = goa.InvalidPatternError(`load.Name`, tmp34, `[a-zA-Z0-9\-]+`, err)
-					}
-				}
-			}
-			target.Name = tmp34
-		} else {
-			err = goa.MissingAttributeError(`load`, "name", err)
-		}
-		if v, ok := val["root"]; ok {
-			var tmp35 string
-			if val, ok := v.(string); ok {
-				tmp35 = val
-			} else {
-				err = goa.InvalidAttributeTypeError(`load.Root`, v, "string", err)
-			}
-			target.Root = tmp35
-		}
-	} else {
-		err = goa.InvalidAttributeTypeError(`load`, source, "dictionary", err)
-	}
-	return
-}
-
 // Field type
 type Field struct {
 	// the default for this field
@@ -185,7 +55,7 @@ func MarshalField(source *Field, inErr error) (target map[string]interface{}, er
 			if !(source.Type == "string" || source.Type == "integer" || source.Type == "float" || source.Type == "boolean") {
 				err = goa.InvalidEnumValueError(`.type`, source.Type, []interface{}{"string", "integer", "float", "boolean"}, err)
 			}
-			tmp36 := map[string]interface{}{
+			tmp26 := map[string]interface{}{
 				"default":     source.Default,
 				"description": source.Description,
 				"name":        source.Name,
@@ -193,7 +63,7 @@ func MarshalField(source *Field, inErr error) (target map[string]interface{}, er
 				"root":        source.Root,
 				"type":        source.Type,
 			}
-			target = tmp36
+			target = tmp26
 		}
 	}
 	return
@@ -205,70 +75,70 @@ func UnmarshalField(source interface{}, inErr error) (target *Field, err error) 
 	if val, ok := source.(map[string]interface{}); ok {
 		target = new(Field)
 		if v, ok := val["default"]; ok {
-			var tmp37 interface{}
-			tmp37 = v
-			target.Default = tmp37
+			var tmp27 interface{}
+			tmp27 = v
+			target.Default = tmp27
 		}
 		if v, ok := val["description"]; ok {
-			var tmp38 string
+			var tmp28 string
 			if val, ok := v.(string); ok {
-				tmp38 = val
+				tmp28 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Description`, v, "string", err)
 			}
-			target.Description = tmp38
+			target.Description = tmp28
 		}
 		if v, ok := val["name"]; ok {
-			var tmp39 string
+			var tmp29 string
 			if val, ok := v.(string); ok {
-				tmp39 = val
+				tmp29 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Name`, v, "string", err)
 			}
 			if err == nil {
-				if tmp39 != "" {
-					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, tmp39); !ok {
-						err = goa.InvalidPatternError(`load.Name`, tmp39, `[a-zA-Z0-9\-/]+`, err)
+				if tmp29 != "" {
+					if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, tmp29); !ok {
+						err = goa.InvalidPatternError(`load.Name`, tmp29, `[a-zA-Z0-9\-/]+`, err)
 					}
 				}
 			}
-			target.Name = tmp39
+			target.Name = tmp29
 		} else {
 			err = goa.MissingAttributeError(`load`, "name", err)
 		}
 		if v, ok := val["required"]; ok {
-			var tmp40 bool
+			var tmp30 bool
 			if val, ok := v.(bool); ok {
-				tmp40 = val
+				tmp30 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Required`, v, "bool", err)
 			}
-			target.Required = tmp40
+			target.Required = tmp30
 		}
 		if v, ok := val["root"]; ok {
-			var tmp41 string
+			var tmp31 string
 			if val, ok := v.(string); ok {
-				tmp41 = val
+				tmp31 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Root`, v, "string", err)
 			}
-			target.Root = tmp41
+			target.Root = tmp31
 		}
 		if v, ok := val["type"]; ok {
-			var tmp42 string
+			var tmp32 string
 			if val, ok := v.(string); ok {
-				tmp42 = val
+				tmp32 = val
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Type`, v, "string", err)
 			}
 			if err == nil {
-				if tmp42 != "" {
-					if !(tmp42 == "string" || tmp42 == "integer" || tmp42 == "float" || tmp42 == "boolean") {
-						err = goa.InvalidEnumValueError(`load.Type`, tmp42, []interface{}{"string", "integer", "float", "boolean"}, err)
+				if tmp32 != "" {
+					if !(tmp32 == "string" || tmp32 == "integer" || tmp32 == "float" || tmp32 == "boolean") {
+						err = goa.InvalidEnumValueError(`load.Type`, tmp32, []interface{}{"string", "integer", "float", "boolean"}, err)
 					}
 				}
 			}
-			target.Type = tmp42
+			target.Type = tmp32
 		} else {
 			err = goa.MissingAttributeError(`load`, "type", err)
 		}
