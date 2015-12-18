@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/mock"
@@ -112,8 +113,8 @@ func (s *StoreSchemaSuite) TestListSchema() {
 	s.mock.On("List", s.prefix).Return([]*store.KVPair{{Key: s.prefix + "present", Value: s.schemaBytes}}, nil)
 
 	schemas, err := s.store.ListSchemas()
-	s.Assert().Nil(err)
-	s.Assert().Equal(s.schema, schemas)
+	s.Assert().Nil(err, fmt.Sprintf("%+v", err))
+	s.Assert().Equal(s.schema, schemas[0])
 
 	s.mock.AssertExpectations(s.T())
 }

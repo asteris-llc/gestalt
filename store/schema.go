@@ -54,7 +54,7 @@ func (s *Store) ListSchemas() ([]*app.Schema, error) {
 
 	schemas := []*app.Schema{}
 	for _, raw := range raws {
-		var schema *app.Schema
+		schema := &app.Schema{}
 		err = json.Unmarshal(raw.Value, schema)
 		if err != nil {
 			return schemas, err
