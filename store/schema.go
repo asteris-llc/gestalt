@@ -52,7 +52,7 @@ func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
 // ListSchemas gets a list of schemas
 func (s *Store) ListSchemas() ([]*app.Schema, error) {
 	schemas := []*app.Schema{}
-	raws, err := s.schemaStore.List(s.schemaStore.Prefix)
+	raws, err := s.schemaStore.List(ensurePrefix(s.schemaStore.Prefix, "schemas"))
 
 	if err == store.ErrKeyNotFound {
 		return schemas, nil

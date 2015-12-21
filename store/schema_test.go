@@ -110,7 +110,7 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 // LIST
 
 func (s *StoreSchemaSuite) TestListSchema() {
-	s.mock.On("List", s.prefix).Return([]*store.KVPair{{Key: s.prefix + "present", Value: s.schemaBytes}}, nil)
+	s.mock.On("List", s.prefix+"schemas").Return([]*store.KVPair{{Key: s.prefix + "present", Value: s.schemaBytes}}, nil)
 
 	schemas, err := s.store.ListSchemas()
 	s.Assert().Nil(err, fmt.Sprintf("%+v", err))
