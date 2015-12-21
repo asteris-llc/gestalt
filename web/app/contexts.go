@@ -505,14 +505,14 @@ func (ctx *DeleteValueContext) InternalServerError() error {
 	return ctx.Respond(500, nil)
 }
 
+// NoContent sends a HTTP response with status code 204.
+func (ctx *DeleteValueContext) NoContent() error {
+	return ctx.Respond(204, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *DeleteValueContext) NotFound() error {
 	return ctx.Respond(404, nil)
-}
-
-// OK sends a HTTP response with status code 200.
-func (ctx *DeleteValueContext) OK(resp []byte) error {
-	return ctx.Respond(200, resp)
 }
 
 // ListValueContext provides the value list action context.

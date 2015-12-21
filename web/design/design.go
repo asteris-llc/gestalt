@@ -157,7 +157,7 @@ func init() {
 
 			Params(func() { nameParam(); valueParam() })
 
-			Response(OK, func() { Description("value was deleted") })
+			Response(NoContent, func() { Description("value was deleted") })
 			Response(NotFound)
 			Response(InternalServerError)
 		})
