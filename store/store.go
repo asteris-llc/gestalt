@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/asteris-llc/gestalt/schema"
+	"github.com/asteris-llc/gestalt/web/app"
 )
 
 // Store stores and validates schemas.
@@ -32,7 +32,7 @@ func (s *Store) getBackend(name string) (*Backend, error) {
 	return nil, ErrMissingBackend
 }
 
-func (s *Store) getBackendForSchema(target *schema.Schema) (*Backend, error) {
+func (s *Store) getBackendForSchema(target *app.Schema) (*Backend, error) {
 	if target.Backend == "" {
 		return s.defaultStore, nil
 	}

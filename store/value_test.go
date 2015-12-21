@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/mock"
 	"github.com/stretchr/testify/suite"
@@ -21,21 +20,13 @@ type StoreValueSuite struct {
 func (s *StoreValueSuite) SetupSuite() {
 	s.prefix = "mock/"
 	s.schemaBytes = []byte(`{
-	  "properties": {
-	    "required": {"type": "string"},
-	    "optional": {"type": "string"},
-	    "integer": {"type": "integer"},
-	    "boolean": {"type": "boolean"},
-	    "number": {"type": "number"},
-	    "default": {"type": "string", "default": "default"},
-	    "nested": {
-	      "type": "object",
-	      "properties": {
-	        "inner": {"type": "string", "default": "nested/inner"}
-	      }
-	    }
-	  },
-	  "required": ["required"]
+	  "name": "test",
+	  "backend": "mock",
+	  "fields": [
+	    {"name": "required", "type": "string", "required": true},
+	    {"name": "optional", "type": "string"},
+	    {"name": "integer", "type": "integer", "default": 1}
+	  ]
 	}`)
 }
 
@@ -43,12 +34,14 @@ func (s *StoreValueSuite) SetupTest() {
 	s.prefix = "mock/"
 
 	s.mock = &mock.Mock{}
-	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 	s.backend = NewBackend(s.mock, "mock", s.prefix)
 
 	var err error
 	s.store, err = New([]*Backend{s.backend}, s.backend, s.backend)
 	s.Require().Nil(err)
+
+	// this is down here because we need a fully initialized store to use schemaPath
+	s.mock.On("Get", s.store.schemaPath("test")).Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 }
 
 // RetrieveValues
@@ -56,14 +49,8 @@ func (s *StoreValueSuite) SetupTest() {
 func (s *StoreValueSuite) TestRetrieveValues() {
 	// set
 	s.mock.On("Get", s.prefix+"test/required").Return(&store.KVPair{Key: s.prefix + "test/required", Value: []byte("required")}, nil)
-	s.mock.On("Get", s.prefix+"test/number").Return(&store.KVPair{Key: s.prefix + "test/number", Value: []byte("3.14")}, nil)
-	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("3")}, nil)
-	s.mock.On("Get", s.prefix+"test/boolean").Return(&store.KVPair{Key: s.prefix + "test/boolean", Value: []byte("true")}, nil)
-
-	// not set
-	for _, name := range []string{"optional", "default", "nested", "nested/inner"} {
-		s.mock.On("Get", s.prefix+"test/"+name).Return(&store.KVPair{}, nil)
-	}
+	s.mock.On("Get", s.prefix+"test/optional").Return(&store.KVPair{Key: s.prefix + "test/optional", Value: []byte("optional")}, nil)
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("1")}, nil)
 
 	values, err := s.store.RetrieveValues("test")
 	s.Require().Nil(err)
@@ -71,12 +58,11 @@ func (s *StoreValueSuite) TestRetrieveValues() {
 	s.mock.AssertExpectations(s.T())
 
 	s.Assert().Equal("required", values["required"].(string))
-	s.Assert().Equal(3.14, values["number"].(float64))
-	s.Assert().Equal(3, values["integer"].(int))
-	s.Assert().True(values["boolean"].(bool))
+	s.Assert().Equal("optional", values["optional"].(string))
+	s.Assert().Equal(1, values["integer"].(int))
 }
 
-// RetrieveValues
+// RetrieveValue
 
 func (s *StoreValueSuite) TestRetrieveValueValid() {
 	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{Key: s.prefix + "test/integer", Value: []byte("3")}, nil)
@@ -94,13 +80,13 @@ func (s *StoreValueSuite) TestRetrieveValueInvalid() {
 
 	_, err := s.store.RetrieveValue("test", "integer")
 	s.Require().NotNil(err)
-	s.Assert().Equal(`integer: strconv.ParseInt: parsing "x": invalid syntax`, err.Error())
+	s.Assert().Equal(`integer: parsing "x": invalid syntax`, err.Error())
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreValueSuite) TestRetrieveValueMissing() {
-	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{}, nil)
+	s.mock.On("Get", s.prefix+"test/integer").Return(&store.KVPair{}, store.ErrKeyNotFound)
 
 	_, err := s.store.RetrieveValue("test", "integer")
 	s.Assert().Equal(ErrMissingKey, err)
@@ -120,15 +106,15 @@ func (s *StoreValueSuite) TestRetrieveValueBadKey() {
 func (s *StoreValueSuite) TestStoreValuesValid() {
 	s.mock.On("Put", s.prefix+"test/required", []byte("a"), &store.WriteOptions{}).Return(nil)
 
-	errors := s.store.StoreValues("test", []byte(`{"required": "a"}`))
-	s.Assert().Equal(0, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValues("test", map[string]interface{}{"required": "a"})
+	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreValueSuite) TestStoreValuesInvalid() {
-	errors := s.store.StoreValues("test", []byte(`{"required": 1}`))
-	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValues("test", map[string]interface{}{"required": 1})
+	s.Assert().Equal(`required: "1" is not a valid string`, err.Error())
 
 	s.mock.AssertExpectations(s.T())
 }
@@ -136,8 +122,7 @@ func (s *StoreValueSuite) TestStoreValuesInvalid() {
 // StoreDefaultValues
 
 func (s *StoreValueSuite) TestStoreDefaultValues() {
-	s.mock.On("Put", s.prefix+"test/default", []byte("default"), &store.WriteOptions{}).Return(nil)
-	s.mock.On("Put", s.prefix+"test/nested/inner", []byte("nested/inner"), &store.WriteOptions{}).Return(nil)
+	s.mock.On("Put", s.prefix+"test/integer", []byte("1"), &store.WriteOptions{}).Return(nil)
 
 	err := s.store.StoreDefaultValues("test")
 	s.Assert().Nil(err)
@@ -150,22 +135,22 @@ func (s *StoreValueSuite) TestStoreDefaultValues() {
 func (s *StoreValueSuite) TestStoreValueValid() {
 	s.mock.On("Put", s.prefix+"test/required", []byte("a"), &store.WriteOptions{}).Return(nil)
 
-	errors := s.store.StoreValue("test", "required", []byte(`"a"`))
-	s.Assert().Equal(0, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValue("test", "required", "a")
+	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreValueSuite) TestStoreValueInvalid() {
-	errors := s.store.StoreValue("test", "required", []byte("1"))
-	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValue("test", "required", 1)
+	s.Assert().NotNil(err)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreValueSuite) TestStoreValueNoKey() {
-	errors := s.store.StoreValue("test", "blah", []byte{})
-	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValue("test", "blah", nil)
+	s.Assert().NotNil(err)
 
 	s.mock.AssertExpectations(s.T())
 }
@@ -199,9 +184,9 @@ func (s *StoreValueSuite) TestDeleteValueRequired() {
 }
 
 func (s *StoreValueSuite) TestDeleteValueDefault() {
-	s.mock.On("Put", s.prefix+"test/default", []byte("default"), &store.WriteOptions{}).Return(nil)
+	s.mock.On("Put", s.prefix+"test/integer", []byte("1"), &store.WriteOptions{}).Return(nil)
 
-	err := s.store.DeleteValue("test", "default")
+	err := s.store.DeleteValue("test", "integer")
 	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())

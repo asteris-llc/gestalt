@@ -1,0 +1,8 @@
+schemaBackend="consul"
+defaultBackend="consul"
+
+[[backend]]
+type="consul"
+name="consul"
+prefix="config"
+endpoints=["127.0.0.1:8500"]

@@ -1,7 +1,10 @@
 package store
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/mock"
 	"github.com/stretchr/testify/suite"
@@ -15,38 +18,47 @@ type StoreSchemaSuite struct {
 	mock        *mock.Mock
 	backend     *Backend
 	store       *Store
+	schema      *app.Schema
 	schemaBytes []byte
 }
 
 func (s *StoreSchemaSuite) SetupSuite() {
 	s.prefix = "mock/"
-	s.schemaBytes = []byte(`{"type": "string"}`)
 }
 
 func (s *StoreSchemaSuite) SetupTest() {
-	s.prefix = "mock/"
-
 	s.mock = &mock.Mock{}
 	s.backend = NewBackend(s.mock, "mock", s.prefix)
 
+	s.schema = &app.Schema{
+		Backend: "consul",
+		Name:    "valid",
+	}
 	var err error
+	s.schemaBytes, err = json.Marshal(s.schema)
+	s.Require().Nil(err)
+
 	s.store, err = New([]*Backend{s.backend}, s.backend, s.backend)
 	s.Require().Nil(err)
 }
 
 // STORE
 
-func (s *StoreSchemaSuite) TestStoreSchemaInvalid() {
-	err := s.store.StoreSchema("invalid", []byte{})
-	s.Assert().NotNil(err)
+func (s *StoreSchemaSuite) TestStoreSchemaValid() {
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
-	s.mock.AssertNotCalled(s.T(), "Put", s.prefix+"invalid", "")
+	err := s.store.StoreSchema("valid", s.schema)
+	s.Assert().Nil(err)
+
+	s.mock.AssertExpectations(s.T())
 }
 
-func (s *StoreSchemaSuite) TestStoreSchemaValid() {
-	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(nil)
+func (s *StoreSchemaSuite) TestStoreSchemaNameChange() {
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
-	err := s.store.StoreSchema("valid", s.schemaBytes)
+	s.schema.Name = "something-else"
+
+	err := s.store.StoreSchema("valid", s.schema)
 	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
@@ -54,9 +66,9 @@ func (s *StoreSchemaSuite) TestStoreSchemaValid() {
 
 func (s *StoreSchemaSuite) TestStoreSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(err)
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(err)
 
-	err2 := s.store.StoreSchema("valid", s.schemaBytes)
+	err2 := s.store.StoreSchema("valid", s.schema)
 	s.Assert().Equal(err, err2)
 
 	s.mock.AssertExpectations(s.T())
@@ -65,32 +77,44 @@ func (s *StoreSchemaSuite) TestStoreSchemaError() {
 // RETRIEVE
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaPresent() {
-	s.mock.On("Get", s.prefix+"present").Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
+	s.mock.On("Get", s.store.schemaPath("present")).Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
 
 	schema, err := s.store.RetrieveSchema("present")
 	s.Assert().Nil(err)
-	s.Assert().Equal(s.schemaBytes, schema)
+	s.Assert().Equal(s.schema, schema)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaAbsent() {
-	s.mock.On("Get", s.prefix+"absent").Return(&store.KVPair{}, nil)
+	s.mock.On("Get", s.store.schemaPath("absent")).Return(&store.KVPair{}, store.ErrKeyNotFound)
 
 	schema, err := s.store.RetrieveSchema("absent")
 	s.Assert().Equal(err, ErrMissingKey)
-	s.Assert().Equal(schema, []byte{})
+	s.Assert().Nil(schema)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Get", s.prefix+"error").Return(&store.KVPair{}, err)
+	s.mock.On("Get", s.store.schemaPath("error")).Return(&store.KVPair{}, err)
 
 	schema, err2 := s.store.RetrieveSchema("error")
 	s.Assert().Equal(err2, err)
-	s.Assert().Equal(schema, []byte{})
+	s.Assert().Nil(schema)
+
+	s.mock.AssertExpectations(s.T())
+}
+
+// LIST
+
+func (s *StoreSchemaSuite) TestListSchema() {
+	s.mock.On("List", s.prefix+"schemas").Return([]*store.KVPair{{Key: s.prefix + "present", Value: s.schemaBytes}}, nil)
+
+	schemas, err := s.store.ListSchemas()
+	s.Assert().Nil(err, fmt.Sprintf("%+v", err))
+	s.Assert().Equal(s.schema, schemas[0])
 
 	s.mock.AssertExpectations(s.T())
 }
@@ -98,7 +122,7 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 // DELETE
 
 func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {
-	s.mock.On("Delete", s.prefix+"present").Return(nil)
+	s.mock.On("Delete", s.store.schemaPath("present")).Return(nil)
 
 	err := s.store.DeleteSchema("present")
 	s.Assert().Nil(err)
@@ -108,7 +132,7 @@ func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {
 
 func (s *StoreSchemaSuite) TestDeleteSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Delete", s.prefix+"error").Return(err)
+	s.mock.On("Delete", s.store.schemaPath("error")).Return(err)
 
 	err2 := s.store.DeleteSchema("error")
 	s.Assert().Equal(err2, err)

@@ -1,50 +1,53 @@
 package store
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/asteris-llc/gestalt/schema"
+	"github.com/asteris-llc/gestalt/validator"
+	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/docker/libkv/store"
-	"path"
-	"strconv"
+	"reflect"
 )
 
+// setup is a convienence method for getting a valid schema and backend
+func (s *Store) setup(schemaName string) (*app.Schema, *Backend, error) {
+	schema, err := s.RetrieveSchema(schemaName)
+	if err == store.ErrKeyNotFound {
+		return nil, nil, ErrMissingKey
+	} else if err != nil {
+		return nil, nil, err
+	}
+
+	backend, err := s.getBackendForSchema(schema)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return schema, backend, nil
+}
+
 // RetrieveValues gets all the values from the backend in a map
-func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {
+func (s *Store) RetrieveValues(schemaName string) (map[string]interface{}, error) {
 	out := map[string]interface{}{}
 
-	schemaBytes, err := s.RetrieveSchema(app)
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return out, err
 	}
 
-	target, err := schema.New(schemaBytes)
-	if err != nil {
-		return out, err
-	}
-
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return out, err
-	}
-
-	//  object, array, null, any
-	for name, field := range target.Fields() {
-		value, err := backend.Get(ensurePrefix(backend.Prefix, path.Join(app, name)))
-
-		if err != nil {
+	for _, field := range schema.Fields {
+		value, err := backend.Get(backend.FieldKey(schema, field))
+		if err == store.ErrKeyNotFound {
+			return out, ErrMissingKey
+		} else if err != nil {
 			return out, err
-		} else if value == nil || len(value.Value) == 0 {
-			continue
 		}
 
-		decoded, err := s.decodeValue(value.Value, field.Type)
+		decoded, err := unmarshal(value.Value, field.Type)
 		if err != nil {
-			return out, &DecodeError{name, err}
+			return out, &DecodeError{field.Name, err}
 		}
 
 		if decoded != nil {
-			out[name] = decoded
+			out[field.Name] = decoded
 		}
 	}
 
@@ -52,137 +55,90 @@ func (s *Store) RetrieveValues(app string) (map[string]interface{}, error) {
 }
 
 // RetrieveValue retrieves a single designated value
-func (s *Store) RetrieveValue(app, key string) (interface{}, error) {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) RetrieveValue(schemaName, fieldName string) (interface{}, error) {
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return nil, err
 	}
 
-	target, err := schema.New(schemaBytes)
-	if err != nil {
-		return nil, err
-	}
+	v := validator.New(schema)
 
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return nil, err
-	}
-
-	field, ok := target.Fields()[key]
-	if !ok {
+	field, err := v.Field(fieldName)
+	if err == validator.ErrNoField {
 		return nil, ErrMissingField
-	}
-
-	raw, err := backend.Get(ensurePrefix(backend.Prefix, path.Join(app, key)))
-	if err != nil {
+	} else if err != nil {
 		return nil, err
-	} else if raw == nil || len(raw.Value) == 0 {
-		return nil, ErrMissingKey
 	}
 
-	// TODO: remember to check for strconv.NumError in the HTTP parts and convert
-	// it to a more friendly error type
-	out, err := s.decodeValue(raw.Value, field.Type)
+	raw, err := backend.Get(backend.FieldKey(schema, field))
+	if err == store.ErrKeyNotFound {
+		return nil, ErrMissingKey
+	} else if err != nil {
+		return nil, err
+	}
+
+	out, err := unmarshal(raw.Value, field.Type)
 	if err != nil {
-		return nil, &DecodeError{key, err}
+		return nil, &DecodeError{field.Name, err}
 	}
 
 	return out, nil
 }
 
-func (s *Store) decodeValue(value []byte, typ string) (interface{}, error) {
-	stringed := string(value)
-
-	switch typ {
-	case "string", "any":
-		return stringed, nil
-
-	case "number":
-		return strconv.ParseFloat(stringed, 64)
-
-	case "integer":
-		return strconv.Atoi(stringed)
-
-	case "boolean":
-		return strconv.ParseBool(stringed)
-
-		// unsupported / ignored types
-	case "object", "array", "null":
-		return nil, nil
-
-	default:
-		return nil, fmt.Errorf(`don't know how to decode "%s"`, typ)
-	}
-}
-
-// retrieve one value
-
 // StoreValues stores all the values specified
-func (s *Store) StoreValues(app string, body []byte) []error {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) StoreValues(schemaName string, values map[string]interface{}) error {
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
-		return []error{err}
+		return NewMultiError(err)
 	}
 
-	target, err := schema.New(schemaBytes)
-	if err != nil {
-		return []error{err}
+	v := validator.New(schema)
+
+	errors := v.ValidateAll(values)
+	if len(errors) != 0 {
+		outErrors := NewMultiError()
+		for field, error := range errors {
+			outErrors.Append(&DecodeError{field, error})
+		}
+		return outErrors
 	}
 
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return []error{err}
-	}
+	for fieldName, value := range values {
+		field, err := v.Field(fieldName)
+		if err != nil {
+			return NewMultiError(err)
+		}
 
-	valid, errors := target.ValidateAll(body)
-	if !valid {
-		return errors
-	}
-
-	kvs, err := flattenJSONForWriting(body)
-	if err != nil {
-		return []error{err}
-	}
-
-	for k, v := range kvs {
 		err = backend.Put(
-			ensurePrefix(backend.Prefix, path.Join(app, k)),
-			v,
+			backend.FieldKey(schema, field),
+			marshal(value),
 			&store.WriteOptions{},
 		)
 		if err != nil {
-			return []error{err}
+			return NewMultiError(err)
 		}
 	}
 
-	return []error{}
+	return nil
 }
 
 // StoreDefaultValues stores the default values for an app
-func (s *Store) StoreDefaultValues(app string) error {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) StoreDefaultValues(schemaName string) error {
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return err
 	}
 
-	target, err := schema.New(schemaBytes)
-	if err != nil {
-		return err
-	}
-
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return err
-	}
-
-	for k, v := range target.Defaults() {
-		err = backend.Put(
-			ensurePrefix(backend.Prefix, path.Join(app, k)),
-			[]byte(fmt.Sprintf("%v", v)),
-			&store.WriteOptions{},
-		)
-		if err != nil {
-			return err
+	for _, field := range schema.Fields {
+		if reflect.ValueOf(field.Default).IsValid() {
+			err = backend.Put(
+				backend.FieldKey(schema, field),
+				marshal(field.Default),
+				&store.WriteOptions{},
+			)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -190,100 +146,75 @@ func (s *Store) StoreDefaultValues(app string) error {
 }
 
 // StoreValue stores a single value
-func (s *Store) StoreValue(app, key string, jsonValue []byte) []error {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) StoreValue(schemaName, fieldName string, value interface{}) error {
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	target, err := schema.New(schemaBytes)
+	v := validator.New(schema)
+	field, err := v.Field(fieldName)
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	backend, err := s.getBackendForSchema(target)
+	err = v.ValidateField(field.Name, value)
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	valid, errors := target.ValidateField(key, jsonValue)
-	if !valid {
-		return errors
-	}
-
-	// Unmarshal the byte value before storage (to avoid storing quotes, etc)
-	var value interface{}
-	err = json.Unmarshal(jsonValue, &value)
-	if err != nil {
-		return []error{err}
-	}
-	byteValue := []byte(fmt.Sprintf("%v", value))
-
-	err = backend.Put(
-		ensurePrefix(backend.Prefix, path.Join(app, key)),
-		byteValue,
+	return backend.Put(
+		backend.FieldKey(schema, field),
+		marshal(value),
 		&store.WriteOptions{},
 	)
-	if err != nil {
-		return []error{err}
-	}
-
-	return []error{}
 }
 
 // DeleteValues deletes all the values
-func (s *Store) DeleteValues(app string) error {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) DeleteValues(schemaName string) error {
+	// TODO: derp, this won't work with arbitrarily rooted keys. Fix!
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return err
 	}
 
-	target, err := schema.New(schemaBytes)
-	if err != nil {
-		return err
-	}
-
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return err
-	}
-
-	return backend.DeleteTree(ensurePrefix(backend.Prefix, app))
+	return backend.DeleteTree(backend.SchemaKey(schema))
 }
 
 // DeleteValue deletes a single value or sets it back to the default. If the
 // value is required and does not have a default, this method will return an error.
-func (s *Store) DeleteValue(app, key string) error {
-	schemaBytes, err := s.RetrieveSchema(app)
+func (s *Store) DeleteValue(schemaName, fieldName string) error {
+	schema, backend, err := s.setup(schemaName)
 	if err != nil {
 		return err
 	}
 
-	target, err := schema.New(schemaBytes)
+	v := validator.New(schema)
+
+	field, err := v.Field(fieldName)
 	if err != nil {
 		return err
 	}
 
-	backend, err := s.getBackendForSchema(target)
-	if err != nil {
-		return err
+	if field.Required {
+		return ErrFieldRequired
 	}
 
-	for _, req := range target.FlatRequired() {
-		if key == req {
-			return ErrFieldRequired
-		}
-	}
-
-	if field, ok := target.Defaults()[key]; ok {
-		backend.Put(
-			ensurePrefix(backend.Prefix, path.Join(app, key)),
-			[]byte(fmt.Sprintf("%v", field)),
+	if reflect.ValueOf(field.Default).IsValid() {
+		err = backend.Put(
+			backend.FieldKey(schema, field),
+			marshal(field.Default),
 			&store.WriteOptions{},
 		)
 	} else {
-		backend.Delete(ensurePrefix(backend.Prefix, path.Join(app, key)))
+		err = backend.Delete(backend.FieldKey(schema, field))
 	}
 
-	return nil
+	// we don't care if the key is not found, since deleting makes sure it isn't
+	// present anyway.
+	if err == store.ErrKeyNotFound {
+		return nil
+	}
+
+	return err
 }
