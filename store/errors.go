@@ -16,7 +16,7 @@ var (
 	ErrMissingKey = errors.New("key not found")
 
 	// ErrMissingField is returned when a field is missing
-	ErrMissingField = errors.New("no such field") // TODO: probably move to schema?
+	ErrMissingField = errors.New("no such field")
 
 	// ErrMissingBackend is returned with a given backend is not found
 	ErrMissingBackend = errors.New("backend not found")

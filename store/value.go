@@ -85,8 +85,6 @@ func (s *Store) RetrieveValue(schemaName, fieldName string) (interface{}, error)
 	return out, nil
 }
 
-// retrieve one value
-
 // StoreValues stores all the values specified
 func (s *Store) StoreValues(schemaName string, values map[string]interface{}) error {
 	schema, backend, err := s.setup(schemaName)
