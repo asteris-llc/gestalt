@@ -15,7 +15,7 @@ package app
 import "github.com/raphael/goa"
 
 // Schema media type
-// Identifier: application/vnd.schema+json
+// Identifier: application/vnd.asteris.gestalt.schema+json
 type Schema struct {
 	// a registered backend
 	Backend string
@@ -183,7 +183,7 @@ func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error
 }
 
 // SchemaCollection media type
-// Identifier: application/vnd.schema+json; type=collection
+// Identifier: application/vnd.asteris.gestalt.schema+json; type=collection
 type SchemaCollection []*Schema
 
 // LoadSchemaCollection loads raw data into an instance of SchemaCollection running all the

@@ -24,7 +24,9 @@ var (
 	})
 
 	// Schema is the media type for SchemaPayload
-	Schema = MediaType("application/vnd.schema+json", func() {
+	Schema = MediaType("application/vnd.asteris.gestalt.schema+json", func() {
+		TypeName("Schema")
+
 		fields := func() {
 			Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-]+`) })
 			Attribute("description", String, "human readable description")

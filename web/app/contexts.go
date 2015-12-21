@@ -147,7 +147,7 @@ func (ctx *CreateSchemaContext) Created(resp *Schema) error {
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
 	return ctx.JSON(201, r)
 }
 
@@ -245,7 +245,7 @@ func (ctx *GetSchemaContext) OK(resp *Schema) error {
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
@@ -273,7 +273,7 @@ func (ctx *ListSchemaContext) OK(resp SchemaCollection) error {
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.schema+json; type=collection; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; type=collection; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
@@ -463,7 +463,7 @@ func (ctx *UpdateSchemaContext) OK(resp *Schema) error {
 	if err != nil {
 		return fmt.Errorf("invalid response: %s", err)
 	}
-	ctx.Header().Set("Content-Type", "application/vnd.schema+json; charset=utf-8")
+	ctx.Header().Set("Content-Type", "application/vnd.asteris.gestalt.schema+json; charset=utf-8")
 	return ctx.JSON(200, r)
 }
 
