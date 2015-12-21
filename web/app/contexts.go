@@ -470,11 +470,8 @@ func (ctx *UpdateSchemaContext) OK(resp *Schema) error {
 // DeleteValueContext provides the value delete action context.
 type DeleteValueContext struct {
 	*goa.Context
-	Name       string
-	SetDefault bool
-
-	HasSetDefault bool
-	Value         string
+	Name  string
+	Value string
 }
 
 // NewDeleteValueContext parses the incoming request URL and body, performs validations and creates the
@@ -490,15 +487,6 @@ func NewDeleteValueContext(c *goa.Context) (*DeleteValueContext, error) {
 				err = goa.InvalidPatternError(`name`, ctx.Name, `[a-zA-Z0-9\-]+`, err)
 			}
 		}
-	}
-	rawSetDefault, ok := c.Get("setDefault")
-	if ok {
-		if setDefault, err2 := strconv.ParseBool(rawSetDefault); err2 == nil {
-			ctx.SetDefault = setDefault
-		} else {
-			err = goa.InvalidParamTypeError("setDefault", rawSetDefault, "boolean", err)
-		}
-		ctx.HasSetDefault = true
 	}
 	rawValue, ok := c.Get("value")
 	if ok {

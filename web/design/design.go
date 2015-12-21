@@ -155,11 +155,7 @@ func init() {
 
 			Routing(DELETE("/*value"))
 
-			Params(func() {
-				nameParam()
-				valueParam()
-				Param("setDefault", Boolean, "set the default instead of deleting", func() { Default(true) })
-			})
+			Params(func() { nameParam(); valueParam() })
 
 			Response(OK, func() { Description("value was deleted") })
 			Response(NotFound)
