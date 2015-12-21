@@ -45,7 +45,7 @@ func (s *StoreSchemaSuite) SetupTest() {
 // STORE
 
 func (s *StoreSchemaSuite) TestStoreSchemaValid() {
-	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(nil)
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
 	err := s.store.StoreSchema("valid", s.schema)
 	s.Assert().Nil(err)
@@ -54,7 +54,7 @@ func (s *StoreSchemaSuite) TestStoreSchemaValid() {
 }
 
 func (s *StoreSchemaSuite) TestStoreSchemaNameChange() {
-	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(nil)
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(nil)
 
 	s.schema.Name = "something-else"
 
@@ -66,7 +66,7 @@ func (s *StoreSchemaSuite) TestStoreSchemaNameChange() {
 
 func (s *StoreSchemaSuite) TestStoreSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Put", s.prefix+"valid", s.schemaBytes, &store.WriteOptions{}).Return(err)
+	s.mock.On("Put", s.store.schemaPath("valid"), s.schemaBytes, &store.WriteOptions{}).Return(err)
 
 	err2 := s.store.StoreSchema("valid", s.schema)
 	s.Assert().Equal(err, err2)
@@ -77,7 +77,7 @@ func (s *StoreSchemaSuite) TestStoreSchemaError() {
 // RETRIEVE
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaPresent() {
-	s.mock.On("Get", s.prefix+"present").Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
+	s.mock.On("Get", s.store.schemaPath("present")).Return(&store.KVPair{Key: s.prefix + "present", Value: s.schemaBytes}, nil)
 
 	schema, err := s.store.RetrieveSchema("present")
 	s.Assert().Nil(err)
@@ -87,7 +87,7 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaPresent() {
 }
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaAbsent() {
-	s.mock.On("Get", s.prefix+"absent").Return(&store.KVPair{}, store.ErrKeyNotFound)
+	s.mock.On("Get", s.store.schemaPath("absent")).Return(&store.KVPair{}, store.ErrKeyNotFound)
 
 	schema, err := s.store.RetrieveSchema("absent")
 	s.Assert().Equal(err, ErrMissingKey)
@@ -98,7 +98,7 @@ func (s *StoreSchemaSuite) TestRetrieveSchemaAbsent() {
 
 func (s *StoreSchemaSuite) TestRetrieveSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Get", s.prefix+"error").Return(&store.KVPair{}, err)
+	s.mock.On("Get", s.store.schemaPath("error")).Return(&store.KVPair{}, err)
 
 	schema, err2 := s.store.RetrieveSchema("error")
 	s.Assert().Equal(err2, err)
@@ -122,7 +122,7 @@ func (s *StoreSchemaSuite) TestListSchema() {
 // DELETE
 
 func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {
-	s.mock.On("Delete", s.prefix+"present").Return(nil)
+	s.mock.On("Delete", s.store.schemaPath("present")).Return(nil)
 
 	err := s.store.DeleteSchema("present")
 	s.Assert().Nil(err)
@@ -132,7 +132,7 @@ func (s *StoreSchemaSuite) TestDeleteSchemaPresent() {
 
 func (s *StoreSchemaSuite) TestDeleteSchemaError() {
 	err := errors.New("test")
-	s.mock.On("Delete", s.prefix+"error").Return(err)
+	s.mock.On("Delete", s.store.schemaPath("error")).Return(err)
 
 	err2 := s.store.DeleteSchema("error")
 	s.Assert().Equal(err2, err)

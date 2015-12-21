@@ -34,12 +34,14 @@ func (s *StoreValueSuite) SetupTest() {
 	s.prefix = "mock/"
 
 	s.mock = &mock.Mock{}
-	s.mock.On("Get", s.prefix+"test").Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 	s.backend = NewBackend(s.mock, "mock", s.prefix)
 
 	var err error
 	s.store, err = New([]*Backend{s.backend}, s.backend, s.backend)
 	s.Require().Nil(err)
+
+	// this is down here because we need a fully initialized store to use schemaPath
+	s.mock.On("Get", s.store.schemaPath("test")).Return(&store.KVPair{Key: s.prefix + "test", Value: s.schemaBytes}, nil)
 }
 
 // RetrieveValues

@@ -4,7 +4,12 @@ import (
 	"encoding/json"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/docker/libkv/store"
+	"path"
 )
+
+func (s *Store) schemaPath(name string) string {
+	return ensurePrefix(s.schemaStore.Prefix, path.Join("schemas", name))
+}
 
 // StoreSchema stores or updates a schema and makes sure that the schema is
 // valid before storage.
@@ -19,7 +24,7 @@ func (s *Store) StoreSchema(name string, schema *app.Schema) error {
 
 	// validate that the schema is valid
 	return s.schemaStore.Put(
-		ensurePrefix(s.schemaStore.Prefix, name),
+		s.schemaPath(name),
 		schemaBlob,
 		&store.WriteOptions{},
 	)
@@ -27,7 +32,7 @@ func (s *Store) StoreSchema(name string, schema *app.Schema) error {
 
 // RetrieveSchema gets a schema
 func (s *Store) RetrieveSchema(name string) (*app.Schema, error) {
-	pair, err := s.schemaStore.Get(ensurePrefix(s.schemaStore.Prefix, name))
+	pair, err := s.schemaStore.Get(s.schemaPath(name))
 
 	if err == store.ErrKeyNotFound {
 		return nil, ErrMissingKey
@@ -70,5 +75,5 @@ func (s *Store) ListSchemas() ([]*app.Schema, error) {
 
 // DeleteSchema removes a schema from the K/V tree
 func (s *Store) DeleteSchema(name string) error {
-	return s.schemaStore.Delete(ensurePrefix(s.schemaStore.Prefix, name))
+	return s.schemaStore.Delete(s.schemaPath(name))
 }
