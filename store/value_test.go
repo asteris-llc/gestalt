@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/mock"
 	"github.com/stretchr/testify/suite"
@@ -105,15 +104,15 @@ func (s *StoreValueSuite) TestRetrieveValueBadKey() {
 func (s *StoreValueSuite) TestStoreValuesValid() {
 	s.mock.On("Put", s.prefix+"test/required", []byte("a"), &store.WriteOptions{}).Return(nil)
 
-	errors := s.store.StoreValues("test", map[string]interface{}{"required": "a"})
-	s.Assert().Equal(0, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValues("test", map[string]interface{}{"required": "a"})
+	s.Assert().Nil(err)
 
 	s.mock.AssertExpectations(s.T())
 }
 
 func (s *StoreValueSuite) TestStoreValuesInvalid() {
-	errors := s.store.StoreValues("test", map[string]interface{}{"required": 1})
-	s.Assert().Equal(1, len(errors), fmt.Sprintf("%v", errors))
+	err := s.store.StoreValues("test", map[string]interface{}{"required": 1})
+	s.Assert().Equal(`required: "1" is not a valid string`, err.Error())
 
 	s.mock.AssertExpectations(s.T())
 }

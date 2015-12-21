@@ -88,19 +88,19 @@ func (s *Store) RetrieveValue(schemaName, fieldName string) (interface{}, error)
 // retrieve one value
 
 // StoreValues stores all the values specified
-func (s *Store) StoreValues(schemaName string, values map[string]interface{}) []error {
+func (s *Store) StoreValues(schemaName string, values map[string]interface{}) error {
 	schema, backend, err := s.setup(schemaName)
 	if err != nil {
-		return []error{err}
+		return NewMultiError(err)
 	}
 
 	v := validator.New(schema)
 
 	errors := v.ValidateAll(values)
 	if len(errors) != 0 {
-		outErrors := []error{}
+		outErrors := NewMultiError()
 		for field, error := range errors {
-			outErrors = append(outErrors, &DecodeError{field, error})
+			outErrors.Append(&DecodeError{field, error})
 		}
 		return outErrors
 	}
@@ -108,7 +108,7 @@ func (s *Store) StoreValues(schemaName string, values map[string]interface{}) []
 	for fieldName, value := range values {
 		field, err := v.Field(fieldName)
 		if err != nil {
-			return []error{err}
+			return NewMultiError(err)
 		}
 
 		err = backend.Put(
@@ -117,11 +117,11 @@ func (s *Store) StoreValues(schemaName string, values map[string]interface{}) []
 			&store.WriteOptions{},
 		)
 		if err != nil {
-			return []error{err}
+			return NewMultiError(err)
 		}
 	}
 
-	return []error{}
+	return nil
 }
 
 // StoreDefaultValues stores the default values for an app

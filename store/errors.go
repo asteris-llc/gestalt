@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -33,4 +34,28 @@ func (d *DecodeError) Error() string {
 	}
 
 	return fmt.Sprintf("%s: %s", d.Field, d.Err)
+}
+
+// MultiError is multiple errors rolled into one
+type MultiError struct {
+	errs []error
+}
+
+// NewMultiError wraps a number of errors in a MutliError
+func NewMultiError(errs ...error) *MultiError {
+	return &MultiError{errs}
+}
+
+// Append adds a new error onto the end of the MultiError
+func (m *MultiError) Append(err error) {
+	m.errs = append(m.errs, err)
+}
+
+func (m *MultiError) Error() string {
+	errs := []string{}
+	for _, err := range m.errs {
+		errs = append(errs, err.Error())
+	}
+
+	return strings.Join(errs, "\n")
 }
