@@ -86,6 +86,17 @@ func (c *ValueController) Show(ctx *app.ShowValueContext) error {
 
 // Write runs the write action.
 func (c *ValueController) Write(ctx *app.WriteValueContext) error {
+	// because of a little bug in httprouter and how we consume values, requests
+	// that should go to WriteAll go here instead. The following snippet redirects
+	// them.
+	if ctx.Name == "/" {
+		newCtx, err := app.NewWriteAllValueContext(ctx.Context)
+		if err != nil {
+			return err
+		}
+		return c.WriteAll(newCtx)
+	}
+
 	err := c.store.StoreValue(ctx.Name, strings.TrimLeft(ctx.Value, "/"), ctx.Payload())
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
@@ -107,6 +118,11 @@ func (c *ValueController) WriteAll(ctx *app.WriteAllValueContext) error {
 	vals, ok := ctx.Payload().(map[string]interface{})
 	if !ok {
 		return ctx.BadRequest(goa.NewBadRequestError(errors.New("could not convert to hash of any")))
+	}
+
+	for k, v := range vals {
+		delete(vals, k)
+		vals[strings.TrimLeft(k, "/")] = v
 	}
 
 	err := c.store.StoreValues(ctx.Name, vals)
