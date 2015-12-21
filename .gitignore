@@ -25,3 +25,6 @@ _testmain.go
 
 # code generation artifacts
 web/impl
+
+# build artifacts
+gestalt
