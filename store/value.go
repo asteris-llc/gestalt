@@ -203,14 +203,20 @@ func (s *Store) DeleteValue(schemaName, fieldName string) error {
 	}
 
 	if reflect.ValueOf(field.Default).IsValid() {
-		backend.Put(
+		err = backend.Put(
 			backend.FieldKey(schema, field),
 			marshal(field.Default),
 			&store.WriteOptions{},
 		)
 	} else {
-		backend.Delete(backend.FieldKey(schema, field))
+		err = backend.Delete(backend.FieldKey(schema, field))
 	}
 
-	return nil
+	// we don't care if the key is not found, since deleting makes sure it isn't
+	// present anyway.
+	if err == store.ErrKeyNotFound {
+		return nil
+	}
+
+	return err
 }
