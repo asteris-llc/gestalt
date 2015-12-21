@@ -25,7 +25,7 @@ func init() {
 
 		Action("list", func() {
 			Description("list the schemas present in the system")
-			Routing(GET("/"))
+			Routing(GET(""))
 
 			Response(OK, func() {
 				Description("a list of schemas")
@@ -38,7 +38,7 @@ func init() {
 
 		Action("create", func() {
 			Description("write a schema to the backend")
-			Routing(POST("/"))
+			Routing(POST(""))
 
 			Payload(Schema)
 
@@ -70,7 +70,7 @@ func init() {
 
 		Action("update", func() {
 			Description("update an existing schema")
-			Routing(PUT("/:name"))
+			Routing(PUT("/:name"), POST("/:name"))
 
 			Payload(Schema)
 
@@ -119,11 +119,28 @@ func init() {
 
 		Action("list", func() {
 			Description("list the values present in the K/V store")
-			Routing(GET("/"))
+			Routing(GET(""))
 
 			Params(nameParam)
 
-			Response(OK, func() { Description("a list of values") })
+			Response(OK, func() {
+				Description("a list of values")
+				Media("application/vnd.asteris.gestalt.values+json")
+			})
+			Response(NotFound)
+			Response(InternalServerError)
+		})
+
+		Action("writeAll", func() {
+			Description("write all the values at once")
+			Routing(PUT(""), POST(""))
+
+			Params(nameParam)
+
+			Response(OK, func() {
+				Description("the values which were written")
+				Media("application/vnd.asteris.gestalt.values+json")
+			})
 			Response(NotFound)
 			Response(InternalServerError)
 		})
@@ -134,18 +151,24 @@ func init() {
 
 			Params(func() { nameParam(); valueParam() })
 
-			Response(OK, func() { Description("a single value") })
+			Response(OK, func() {
+				Description("a single value")
+				Media("application/vnd.asteris.gestalt.value+json")
+			})
 			Response(NotFound)
 			Response(InternalServerError)
 		})
 
 		Action("write", func() {
 			Description("write a single value")
-			Routing(PUT("/*value"))
+			Routing(PUT("/*value"), POST("/*value"))
 
 			Params(func() { nameParam(); valueParam() })
 
-			Response(OK, func() { Description("value was written") })
+			Response(OK, func() {
+				Description("value was written")
+				Media("application/vnd.asteris.gestalt.value+json")
+			})
 			Response(NotFound)
 			Response(InternalServerError)
 		})

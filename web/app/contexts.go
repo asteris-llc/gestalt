@@ -648,3 +648,41 @@ func (ctx *WriteValueContext) NotFound() error {
 func (ctx *WriteValueContext) OK(resp []byte) error {
 	return ctx.Respond(200, resp)
 }
+
+// WriteAllValueContext provides the value writeAll action context.
+type WriteAllValueContext struct {
+	*goa.Context
+	Name string
+}
+
+// NewWriteAllValueContext parses the incoming request URL and body, performs validations and creates the
+// context used by the value controller writeAll action.
+func NewWriteAllValueContext(c *goa.Context) (*WriteAllValueContext, error) {
+	var err error
+	ctx := WriteAllValueContext{Context: c}
+	rawName, ok := c.Get("name")
+	if ok {
+		ctx.Name = rawName
+		if ctx.Name != "" {
+			if ok := goa.ValidatePattern(`[a-zA-Z0-9\-]+`, ctx.Name); !ok {
+				err = goa.InvalidPatternError(`name`, ctx.Name, `[a-zA-Z0-9\-]+`, err)
+			}
+		}
+	}
+	return &ctx, err
+}
+
+// InternalServerError sends a HTTP response with status code 500.
+func (ctx *WriteAllValueContext) InternalServerError() error {
+	return ctx.Respond(500, nil)
+}
+
+// NotFound sends a HTTP response with status code 404.
+func (ctx *WriteAllValueContext) NotFound() error {
+	return ctx.Respond(404, nil)
+}
+
+// OK sends a HTTP response with status code 200.
+func (ctx *WriteAllValueContext) OK(resp []byte) error {
+	return ctx.Respond(200, resp)
+}

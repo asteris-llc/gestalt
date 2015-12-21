@@ -86,6 +86,8 @@ func MountSchemaController(service goa.Service, ctrl SchemaController) {
 	}
 	router.Handle("PUT", "/v1/schemas/:name", ctrl.NewHTTPRouterHandle("Update", h))
 	service.Info("mount", "ctrl", "Schema", "action", "Update", "route", "PUT /v1/schemas/:name")
+	router.Handle("POST", "/v1/schemas/:name", ctrl.NewHTTPRouterHandle("Update", h))
+	service.Info("mount", "ctrl", "Schema", "action", "Update", "route", "POST /v1/schemas/:name")
 }
 
 // ValueController is the controller interface for the Value actions.
@@ -95,6 +97,7 @@ type ValueController interface {
 	List(*ListValueContext) error
 	Show(*ShowValueContext) error
 	Write(*WriteValueContext) error
+	WriteAll(*WriteAllValueContext) error
 }
 
 // MountValueController "mounts" a Value resource controller on the given service.
@@ -137,4 +140,17 @@ func MountValueController(service goa.Service, ctrl ValueController) {
 	}
 	router.Handle("PUT", "/v1/schemas/:name/values/*value", ctrl.NewHTTPRouterHandle("Write", h))
 	service.Info("mount", "ctrl", "Value", "action", "Write", "route", "PUT /v1/schemas/:name/values/*value")
+	router.Handle("POST", "/v1/schemas/:name/values/*value", ctrl.NewHTTPRouterHandle("Write", h))
+	service.Info("mount", "ctrl", "Value", "action", "Write", "route", "POST /v1/schemas/:name/values/*value")
+	h = func(c *goa.Context) error {
+		ctx, err := NewWriteAllValueContext(c)
+		if err != nil {
+			return goa.NewBadRequestError(err)
+		}
+		return ctrl.WriteAll(ctx)
+	}
+	router.Handle("PUT", "/v1/schemas/:name/values", ctrl.NewHTTPRouterHandle("WriteAll", h))
+	service.Info("mount", "ctrl", "Value", "action", "WriteAll", "route", "PUT /v1/schemas/:name/values")
+	router.Handle("POST", "/v1/schemas/:name/values", ctrl.NewHTTPRouterHandle("WriteAll", h))
+	service.Info("mount", "ctrl", "Value", "action", "WriteAll", "route", "POST /v1/schemas/:name/values")
 }
