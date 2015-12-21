@@ -100,7 +100,7 @@ func (c *SchemaController) SetDefaults(ctx *app.SetDefaultsSchemaContext) error 
 		return ctx.InternalServerError()
 	}
 
-	return ctx.OK([]byte{})
+	return ctx.NotFound()
 }
 
 // Update runs the update action.
