@@ -34,16 +34,20 @@ control with Gestalt. In this example, we'll use the [Consul](https://consul.io)
 backend by writing the following to `gestalt.toml`:
 
 ```toml
-port=3000
+schemaBackend="dev"
+defaultBackend="dev"
 
-[dev]
-backend="consul"
-host="http://127.0.0.1:8500"
-prefix="/dev"
+[[backend]]
+type="consul"
+name="dev"
+prefix="config"
+endpoints=["127.0.0.1:8500"]
 ```
 
 This means that on startup, there will be a store named "dev", whose keys will
-be rooted at `/dev`. Start the server with `gestalt serve gestalt.toml`.
+be rooted at `/dev`. Start the server with `gestalt server
+--config=gestalt.toml` (there's a default configuration for you to get started
+with at [gestalt.sample.toml](gestalt.sample.toml))
 
 ## Basic Workflow
 
@@ -55,31 +59,17 @@ The basic workflow for using Gestalt should be quite simple. You need to:
 
 ### Define a Schema
 
-Gestalt uses an extension of [JSON Schema](http://json-schema.org/) to specify
-schemas (specifically, arrays are not currently supported, and root objects can
-have a `backend` key) Let's specify the configuration for a simple app with some
-feature flags.
+Gestalt uses a JSON format to specify schemas. Let's specify the configuration
+for a simple app with some feature flags.
 
 ```json
 {
     "name": "sample-app",
     "backend": "dev",
-    "type": "object",
-    "properties": {
-        "email-host": {
-            "type": "string",
-            "required": true
-        },
-        "features": {
-            "type": "object",
-            "properties": {
-                "an-amazing-feature": {
-                    "type": "bool",
-                    "default": false
-                }
-            }
-        }
-    }
+    "fields": [
+        {"name": "email-host", "type": "string", "required": true},
+        {"name": "features/an-amazing-feature", "type": "boolean", "default": false}
+    ]
 }
 ```
 
@@ -92,9 +82,9 @@ keys will end up in the store at the following locations:
 - `email-host`: `/dev/sample-app/email-host`
 - `an-amazing-feature`: `/dev/sample-app/features/an-amazing-feature`
 
-If you want to exclude the prefixes from your keys, you can prefix any name with
-`/`. Otherwise, a path prefix will be constructed with the backend's prefix and
-the schema name.
+If you want to explicitly set the root of your keys, you can set the `root`
+value on a key. Otherwise, a path prefix will be constructed with the backend's
+prefix and the schema name.
 
 **Note**: you can define fields that are not required and have no default, but
 that will result in the keys not being present in the store. Be aware of this
@@ -111,7 +101,7 @@ This command will set any defaults set in your schema. Use the same command to
 update an existing schema. If you don't have access to the `gestalt` tool, you
 can also use cURL:
 
-    $ curl -X POST -d @sample-schema.json -H "Content-Type: application/schema+json" http://localhost:3000/v1/schemas/
+    $ curl -X POST -d @sample-schema.json -H "Content-Type: application/json" http://localhost:3000/v1/schemas/
     { response json elided }
 
 Once you have the schema submitted, you can also use `gestalt` to set the values:
@@ -120,7 +110,7 @@ Once you have the schema submitted, you can also use `gestalt` to set the values
 
 Or the corresponding cURL:
 
-    $ curl -X PUT -d '"1.2.3.4"' -H "Content-Type: applicatin/json" http://localhost:3000/v1/schemas/sample-app/values/email-host
+    $ curl -X PUT -d '"1.2.3.4"' -H "Content-Type: application/json" http://localhost:3000/v1/schemas/sample-app/values/email-host
     { response json elided }
 
 ### Use the Schema
