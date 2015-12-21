@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/asteris-llc/gestalt/cmd"
+	"github.com/asteris-llc/gestalt/cmd/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -15,10 +16,14 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	cmd.ServerFlags()
+	client.SchemaFlags()
+	client.ValueFlags()
 
 	flagsets := []*pflag.FlagSet{
-		rootCmd.PersistentFlags(),
 		cmd.ServerCmd.Flags(),
+		client.SchemaCmd.PersistentFlags(),
+		client.SchemaSubmitCmd.Flags(),
+		client.SchemaDeleteCmd.Flags(),
 	}
 	for _, flagset := range flagsets {
 		if err := viper.BindPFlags(flagset); err != nil {
@@ -28,6 +33,7 @@ func init() {
 
 	// set up command hierarchy
 	rootCmd.AddCommand(cmd.ServerCmd)
+	rootCmd.AddCommand(client.SchemaCmd)
 }
 
 func main() {
