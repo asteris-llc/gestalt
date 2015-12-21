@@ -63,7 +63,7 @@ func (c *SchemaController) Delete(ctx *app.DeleteSchemaContext) error {
 		return ctx.InternalServerError()
 	}
 
-	return ctx.OK([]byte{})
+	return ctx.NoContent()
 }
 
 // Get runs the get action.

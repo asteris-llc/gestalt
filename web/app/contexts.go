@@ -196,14 +196,14 @@ func (ctx *DeleteSchemaContext) InternalServerError() error {
 	return ctx.Respond(500, nil)
 }
 
+// NoContent sends a HTTP response with status code 204.
+func (ctx *DeleteSchemaContext) NoContent() error {
+	return ctx.Respond(204, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *DeleteSchemaContext) NotFound() error {
 	return ctx.Respond(404, nil)
-}
-
-// OK sends a HTTP response with status code 200.
-func (ctx *DeleteSchemaContext) OK(resp []byte) error {
-	return ctx.Respond(200, resp)
 }
 
 // GetSchemaContext provides the schema get action context.
@@ -305,14 +305,14 @@ func (ctx *SetDefaultsSchemaContext) InternalServerError() error {
 	return ctx.Respond(500, nil)
 }
 
+// NoContent sends a HTTP response with status code 204.
+func (ctx *SetDefaultsSchemaContext) NoContent() error {
+	return ctx.Respond(204, nil)
+}
+
 // NotFound sends a HTTP response with status code 404.
 func (ctx *SetDefaultsSchemaContext) NotFound() error {
 	return ctx.Respond(404, nil)
-}
-
-// OK sends a HTTP response with status code 200.
-func (ctx *SetDefaultsSchemaContext) OK(resp []byte) error {
-	return ctx.Respond(200, resp)
 }
 
 // UpdateSchemaContext provides the schema update action context.

@@ -96,7 +96,7 @@ func init() {
 				Param("deleteKeys", Boolean, "delete the keys for this app as well", func() { Default(false) })
 			})
 
-			Response(OK, func() { Description("deleted") })
+			Response(NoContent, func() { Description("deleted") })
 			Response(NotFound)
 			Response(InternalServerError)
 		})
@@ -107,7 +107,7 @@ func init() {
 
 			Params(nameParam)
 
-			Response(OK, func() { Description("defaults set") })
+			Response(NoContent, func() { Description("defaults set") })
 			Response(NotFound)
 			Response(InternalServerError)
 		})
