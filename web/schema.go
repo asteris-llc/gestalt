@@ -6,8 +6,6 @@ import (
 	"github.com/raphael/goa"
 )
 
-// TODO: more realistic error handling
-
 // SchemaController implements the schema resource.
 type SchemaController struct {
 	goa.Controller
