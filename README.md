@@ -24,7 +24,9 @@ Gestalt sits in front of your K/V stores and enforces schemas.
 
 Gestalt is versioned with [semver](http://semver.org/) and reckons versions as
 `BREAKING.FEATURE.FIX`. In other words, the 1.x.x series will contain no
-breaking API changes to input and output (except in the case of bug fixes).
+breaking API changes to input and output (except in the case of bug fixes). You
+can always find the most recent version on the
+[Github releases page](https://github.com/asteris-llc/gestalt/releases).
 
 ## Deploying Gestalt
 
