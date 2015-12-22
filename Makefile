@@ -4,6 +4,9 @@ VERSION = $(shell awk -F\" '/^const Version/ { print $$2 }' main.go)
 
 all: deps test
 
+gestalt: deps
+	go build -o gestalt .
+
 deps:
 	go get -v -t ./...
 	go get -v github.com/raphael/goa/goagen
