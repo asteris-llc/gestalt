@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
 	"io"
@@ -58,6 +60,27 @@ func (c *Client) Do(method, path string, query map[string]interface{}, body io.R
 	}
 
 	request.Header.Set("User-Agent", "gestalt/1.0")
+	if body != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
 
 	return c.c.Do(request)
+}
+
+// prettify formats JSON nicely if it can. If it can't, it fails silently
+// (assuming that the JSON is ill-formed but the calling function still wants
+// it.)
+func prettify(raw []byte) *bytes.Buffer {
+	if !viper.GetBool("pretty") {
+		return bytes.NewBuffer(raw)
+	}
+
+	buf := &bytes.Buffer{}
+	err := json.Indent(buf, raw, "", "  ")
+
+	if err != nil {
+		return bytes.NewBuffer(raw)
+	}
+
+	return buf
 }
