@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -65,6 +67,25 @@ func (c *Client) Do(method, path string, query map[string]interface{}, body io.R
 	}
 
 	return c.c.Do(request)
+}
+
+// HandleResponse handles the response for a command
+func (c *Client) HandleResponse(resp *http.Response) {
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pretty := prettify(body).String()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Fatalf("API returned \"%s\":\n\n%s", resp.Status, pretty)
+	}
+
+	if pretty != "" {
+		fmt.Println(pretty)
+	}
 }
 
 // prettify formats JSON nicely if it can. If it can't, it fails silently

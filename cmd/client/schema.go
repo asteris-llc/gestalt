@@ -38,17 +38,7 @@ var (
 				log.Fatal(err)
 			}
 
-			body, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Fatalf("API returned \"%s\":\n\n%s", resp.Status, prettify(body).String())
-			}
-
-			fmt.Println(prettify(body).String())
+			client.HandleResponse(resp)
 		},
 	}
 
@@ -98,17 +88,7 @@ var (
 				log.Fatal(err)
 			}
 
-			body, err = ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Fatalf("API returned \"%s\":\n\n%s", resp.Status, prettify(body).String())
-			}
-
-			fmt.Println(prettify(body).String())
+			client.HandleResponse(resp)
 		},
 	}
 
@@ -134,17 +114,7 @@ var (
 				log.Fatal(err)
 			}
 
-			body, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Fatalf("API returned \"%s\":\n\n%s", resp.Status, prettify(body).String())
-			}
-
-			fmt.Println(prettify(body).String())
+			client.HandleResponse(resp)
 		},
 	}
 
@@ -168,24 +138,11 @@ var (
 				},
 				nil,
 			)
-
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			body, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Fatalf("API returned \"%s\":\n\n%s", resp.Status, prettify(body).String())
-			}
-
-			if body != nil {
-				fmt.Println(prettify(body).String())
-			}
+			client.HandleResponse(resp)
 		},
 	}
 
