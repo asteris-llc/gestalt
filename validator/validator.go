@@ -49,7 +49,7 @@ func (v *Validator) ValidateField(name string, value interface{}) error {
 	}
 
 	if !valid {
-		return fmt.Errorf(`"%v" is not a valid %s`, value, field.Type)
+		return &ValidationError{fmt.Errorf(`"%v" is not a valid %s`, value, field.Type)}
 	}
 
 	return err

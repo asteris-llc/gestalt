@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/asteris-llc/gestalt/store"
+	"github.com/asteris-llc/gestalt/validator"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/raphael/goa"
 	"strings"
@@ -101,6 +102,9 @@ func (c *ValueController) Write(ctx *app.WriteValueContext) error {
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
+		if err, ok := err.(*validator.ValidationError); ok {
+			return ctx.BadRequest(goa.NewBadRequestError(err))
+		}
 		ctx.Logger.Error(err.Error())
 		return ctx.InternalServerError()
 	}
@@ -129,8 +133,7 @@ func (c *ValueController) WriteAll(ctx *app.WriteAllValueContext) error {
 	if err == store.ErrMissingKey {
 		return ctx.NotFound()
 	} else if err != nil {
-		ctx.Logger.Error(err.Error())
-		return ctx.InternalServerError()
+		return ctx.BadRequest(goa.NewBadRequestError(err))
 	}
 
 	resp, err := json.Marshal(ctx.Payload())
