@@ -30,6 +30,10 @@ can always find the most recent version on the
 also pull matching images from the
 [Docker hub](https://hub.docker.com/r/asteris/gestalt/).
 
+With regards to the stability guarantees, we will prefer to take [the design
+document](web/design/design.go) as the source of truth, and consider it a bug if
+the implementation does not match in any way.
+
 ## Deploying Gestalt
 
 Gestalt is shipped as a single binary that can be both a client and a server. To
