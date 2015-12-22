@@ -219,6 +219,9 @@ func (mt *Schema) Validate() (err error) {
 		err = goa.MissingAttributeError(`response`, "fields", err)
 	}
 
+	if len(mt.Fields) < 1 {
+		err = goa.InvalidLengthError(`response.fields`, mt.Fields, len(mt.Fields), 1, true, err)
+	}
 	for _, e := range mt.Fields {
 		if e.Name != "" {
 			if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, e.Name); !ok {
@@ -262,11 +265,16 @@ func MarshalSchema(source *Schema, inErr error) (target map[string]interface{}, 
 				"root":        source.Root,
 			}
 			if source.Fields != nil {
-				tmp21 := make([]map[string]interface{}, len(source.Fields))
-				for tmp22, tmp23 := range source.Fields {
-					tmp21[tmp22], err = MarshalField(tmp23, err)
+				if len(source.Fields) < 1 {
+					err = goa.InvalidLengthError(`.Fields`, source.Fields, len(source.Fields), 1, true, err)
 				}
-				tmp20["fields"] = tmp21
+				if err == nil {
+					tmp21 := make([]map[string]interface{}, len(source.Fields))
+					for tmp22, tmp23 := range source.Fields {
+						tmp21[tmp22], err = MarshalField(tmp23, err)
+					}
+					tmp20["fields"] = tmp21
+				}
 			}
 			target = tmp20
 		}
@@ -308,6 +316,11 @@ func UnmarshalSchema(source interface{}, inErr error) (target *Schema, err error
 				}
 			} else {
 				err = goa.InvalidAttributeTypeError(`load.Fields`, v, "array", err)
+			}
+			if err == nil {
+				if len(tmp26) < 1 {
+					err = goa.InvalidLengthError(`load.Fields`, tmp26, len(tmp26), 1, true, err)
+				}
 			}
 			target.Fields = tmp26
 		} else {
@@ -374,6 +387,9 @@ func (mt SchemaCollection) Dump() (res []map[string]interface{}, err error) {
 // Validate validates the media type instance.
 func (mt SchemaCollection) Validate() (err error) {
 	for _, e := range mt {
+		if len(e.Fields) < 1 {
+			err = goa.InvalidLengthError(`response[*].fields`, e.Fields, len(e.Fields), 1, true, err)
+		}
 		for _, e := range e.Fields {
 			if e.Name != "" {
 				if ok := goa.ValidatePattern(`[a-zA-Z0-9\-/]+`, e.Name); !ok {
