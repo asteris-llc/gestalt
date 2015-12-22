@@ -13,10 +13,6 @@ web/app: web/design/*.go
 web/swagger: web/design/*.go
 	cd web && goagen swagger -d github.com/asteris-llc/gestalt/web/design
 
-web/client: web/design/*.go
-	cd web && goagen client -d github.com/asteris-llc/gestalt/web/design
-	rm -rf web/client/gestalt-cli
-
 web/impl: web/design/*.go
 	@test -d web/impl || mkdir web/impl
 	cd web/impl && goagen main -d github.com/asteris-llc/gestalt/web/design
