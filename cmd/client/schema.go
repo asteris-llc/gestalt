@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
+	"path"
 	"time"
 )
 
@@ -106,7 +107,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			resp, err := client.Do(
 				"GET",
-				"/v1/schemas/"+args[0],
+				path.Join("/v1/schemas", args[0]),
 				map[string]interface{}{},
 				nil,
 			)
@@ -132,7 +133,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			resp, err := client.Do(
 				"DELETE",
-				"/v1/schemas/"+args[0],
+				path.Join("/v1/schemas", args[0]),
 				map[string]interface{}{
 					"deleteKeys": viper.Get("delete-keys"),
 				},
