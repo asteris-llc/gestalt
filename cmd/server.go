@@ -12,6 +12,7 @@ import (
 var ServerCmd = &cobra.Command{
 	Use:   "server",
 	Short: "start the server",
+	Long:  "start a server with the configuration given by `--config` on the address given by `--address`. The server will run until stopped.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// read config file
 		configBytes, err := ioutil.ReadFile(viper.GetString("config"))

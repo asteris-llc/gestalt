@@ -7,20 +7,27 @@ import (
 
 var (
 	// Field is a single field in the schema
-	Field = Type("field", func() {
-		Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-/]+`) })
-		Attribute("description", String, "human readable description")
-		Attribute("root", String, "root for this key (backend prefix + schema name if not set)")
-		Attribute("required", Boolean, "this field is required", func() { Default(false) })
-		Attribute("default", Any, "the default for this field")
+	Field = MediaType("application/vnd.asteris.gestalt.field+json", func() {
+		TypeName("Field")
 
-		Attribute("type", String, "type of value expected", func() {
-			Enum("string", "integer", "float", "boolean")
-		})
+		fields := func() {
+			Attribute("name", String, func() { Pattern(`[a-zA-Z0-9\-/]+`) })
+			Attribute("description", String, "human readable description")
+			Attribute("root", String, "root for this key (backend prefix + schema name if not set)")
+			Attribute("required", Boolean, "this field is required", func() { Default(false) })
+			Attribute("default", Any, "the default for this field")
 
-		// TODO: format attribute for email/url/ipv4/ipv6/etc
+			Attribute("type", String, "type of value expected", func() {
+				Enum("string", "integer", "float", "boolean")
+			})
 
-		Required("name", "type")
+			// TODO: format attribute for email/url/ipv4/ipv6/etc
+
+			Required("name", "type")
+		}
+
+		Attributes(fields)
+		View("default", fields)
 	})
 
 	// Schema is the media type for SchemaPayload

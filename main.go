@@ -1,40 +1,58 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/asteris-llc/gestalt/cmd"
+	"github.com/asteris-llc/gestalt/cmd/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
-var rootCmd = &cobra.Command{
-	Use: "gestalt",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		setupLogging()
-	},
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "gestalt",
+		Short: "server and client root",
+		Long:  "Gestalt is a wrapper around K/V stores. It provides type checks so that invalid values are not set, and to enable the user to get an overview of the keys in their store.",
+	}
+
+	markdownCmd = &cobra.Command{
+		Use:    "__markdown",
+		Hidden: true,
+		Run: func(cmd *cobra.Command, args []string) {
+			cobra.GenMarkdownTree(rootCmd, "docs/cli/")
+		},
+	}
+)
 
 func init() {
-	// root and persistent flags
-	rootCmd.PersistentFlags().String("log-level", "info", "one of debug, info, warn, error, or fatal")
-	rootCmd.PersistentFlags().String("log-format", "text", "output format (text or json)")
-
 	cmd.ServerFlags()
+	client.SchemaFlags()
+	client.ValueFlags()
 
 	flagsets := []*pflag.FlagSet{
-		rootCmd.PersistentFlags(),
 		cmd.ServerCmd.Flags(),
+
+		client.SchemaCmd.PersistentFlags(),
+		client.SchemaSubmitCmd.Flags(),
+		client.SchemaDeleteCmd.Flags(),
+
+		client.ValueCmd.PersistentFlags(),
 	}
 	for _, flagset := range flagsets {
 		if err := viper.BindPFlags(flagset); err != nil {
-			logrus.WithField("error", err).Fatal("could not bind flags")
+			log.Fatal(err)
 		}
 	}
 
 	// set up command hierarchy
-	rootCmd.AddCommand(cmd.ServerCmd)
+	rootCmd.AddCommand(
+		cmd.ServerCmd,
+		client.SchemaCmd,
+		client.ValueCmd,
+		markdownCmd,
+	)
 }
 
 func main() {

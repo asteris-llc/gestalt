@@ -36,7 +36,7 @@ func (s *Store) RetrieveValues(schemaName string) (map[string]interface{}, error
 	for _, field := range schema.Fields {
 		value, err := backend.Get(backend.FieldKey(schema, field))
 		if err == store.ErrKeyNotFound {
-			return out, ErrMissingKey
+			continue
 		} else if err != nil {
 			return out, err
 		}
@@ -192,7 +192,9 @@ func (s *Store) DeleteValue(schemaName, fieldName string) error {
 	v := validator.New(schema)
 
 	field, err := v.Field(fieldName)
-	if err != nil {
+	if err == validator.ErrNoField {
+		return ErrMissingField
+	} else if err != nil {
 		return err
 	}
 

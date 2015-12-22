@@ -65,7 +65,7 @@ func TestValidateFields(t *testing.T) {
 
 	errs := v.ValidateAll(values)
 
-	assert.Equal(t, errs["boolean"], errors.New(`"banana" is not a valid boolean`))
+	assert.Equal(t, errs["boolean"], &ValidationError{errors.New(`"banana" is not a valid boolean`)})
 	delete(errs, "boolean")
 
 	assert.Equal(t, errs["extra"], ErrNoField)

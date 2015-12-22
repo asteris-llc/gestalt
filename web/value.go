@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/asteris-llc/gestalt/store"
+	"github.com/asteris-llc/gestalt/validator"
 	"github.com/asteris-llc/gestalt/web/app"
 	"github.com/raphael/goa"
 	"strings"
@@ -27,7 +28,9 @@ func NewValueController(service goa.Service, store *store.Store) app.ValueContro
 // Delete runs the delete action.
 func (c *ValueController) Delete(ctx *app.DeleteValueContext) error {
 	err := c.store.DeleteValue(ctx.Name, strings.TrimLeft(ctx.Value, "/"))
-	if err != nil {
+	if err == store.ErrMissingField {
+		return ctx.NotFound()
+	} else if err != nil {
 		ctx.Logger.Error(err.Error())
 		return ctx.InternalServerError()
 	}
@@ -38,7 +41,7 @@ func (c *ValueController) Delete(ctx *app.DeleteValueContext) error {
 // List runs the list action.
 func (c *ValueController) List(ctx *app.ListValueContext) error {
 	values, err := c.store.RetrieveValues(ctx.Name)
-	if err == store.ErrMissingKey {
+	if err == store.ErrMissingKey || err == store.ErrMissingField {
 		return ctx.NotFound()
 	} else if err != nil {
 		ctx.Logger.Error(err.Error())
@@ -68,7 +71,7 @@ func (c *ValueController) Show(ctx *app.ShowValueContext) error {
 	}
 
 	value, err := c.store.RetrieveValue(ctx.Name, strings.TrimLeft(ctx.Value, "/"))
-	if err == store.ErrMissingKey {
+	if err == store.ErrMissingKey || err == store.ErrMissingField {
 		return ctx.NotFound()
 	} else if err != nil {
 		ctx.Logger.Error(err.Error())
@@ -98,9 +101,12 @@ func (c *ValueController) Write(ctx *app.WriteValueContext) error {
 	}
 
 	err := c.store.StoreValue(ctx.Name, strings.TrimLeft(ctx.Value, "/"), ctx.Payload())
-	if err == store.ErrMissingKey {
+	if err == store.ErrMissingKey || err == store.ErrMissingField {
 		return ctx.NotFound()
 	} else if err != nil {
+		if err, ok := err.(*validator.ValidationError); ok {
+			return ctx.BadRequest(goa.NewBadRequestError(err))
+		}
 		ctx.Logger.Error(err.Error())
 		return ctx.InternalServerError()
 	}
@@ -126,11 +132,10 @@ func (c *ValueController) WriteAll(ctx *app.WriteAllValueContext) error {
 	}
 
 	err := c.store.StoreValues(ctx.Name, vals)
-	if err == store.ErrMissingKey {
+	if err == store.ErrMissingKey || err == store.ErrMissingField {
 		return ctx.NotFound()
 	} else if err != nil {
-		ctx.Logger.Error(err.Error())
-		return ctx.InternalServerError()
+		return ctx.BadRequest(goa.NewBadRequestError(err))
 	}
 
 	resp, err := json.Marshal(ctx.Payload())
