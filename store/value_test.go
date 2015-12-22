@@ -158,7 +158,9 @@ func (s *StoreValueSuite) TestStoreValueNoKey() {
 // DeleteValues
 
 func (s *StoreValueSuite) TestDeleteValues() {
-	s.mock.On("DeleteTree", s.prefix+"test").Return(nil)
+	s.mock.On("Delete", s.prefix+"test/required").Return(store.ErrKeyNotFound)
+	s.mock.On("Delete", s.prefix+"test/integer").Return(store.ErrKeyNotFound)
+	s.mock.On("Delete", s.prefix+"test/optional").Return(nil)
 	err := s.store.DeleteValues("test")
 	s.Assert().Nil(err)
 

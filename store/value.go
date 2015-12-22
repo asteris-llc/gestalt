@@ -178,7 +178,14 @@ func (s *Store) DeleteValues(schemaName string) error {
 		return err
 	}
 
-	return backend.DeleteTree(backend.SchemaKey(schema))
+	for _, field := range schema.Fields {
+		err = backend.Delete(backend.FieldKey(schema, field))
+		if err != store.ErrKeyNotFound && err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // DeleteValue deletes a single value or sets it back to the default. If the
