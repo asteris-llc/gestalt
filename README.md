@@ -8,6 +8,7 @@ Gestalt sits in front of your K/V stores and enforces schemas.
 **Table of Contents**
 
 - [Gestalt](#gestalt)
+    - [Versioning](#versioning)
     - [Deploying Gestalt](#deploying-gestalt)
         - [Running a Server](#running-a-server)
         - [Using the client](#using-the-client)
@@ -18,6 +19,12 @@ Gestalt sits in front of your K/V stores and enforces schemas.
     - [License](#license)
 
 <!-- markdown-toc end -->
+
+## Versioning
+
+Gestalt is versioned with [semver](http://semver.org/) and reckons versions as
+`BREAKING.FEATURE.FIX`. In other words, the 1.x.x series will contain no
+breaking API changes to input and output (except in the case of bug fixes).
 
 ## Deploying Gestalt
 
