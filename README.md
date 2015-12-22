@@ -26,7 +26,9 @@ Gestalt is versioned with [semver](http://semver.org/) and reckons versions as
 `BREAKING.FEATURE.FIX`. In other words, the 1.x.x series will contain no
 breaking API changes to input and output (except in the case of bug fixes). You
 can always find the most recent version on the
-[Github releases page](https://github.com/asteris-llc/gestalt/releases).
+[Github releases page](https://github.com/asteris-llc/gestalt/releases). You can
+also pull matching images from the
+[Docker hub](https://hub.docker.com/r/asteris/gestalt/).
 
 ## Deploying Gestalt
 
