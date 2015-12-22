@@ -10,9 +10,21 @@ import (
 	"os"
 )
 
-var rootCmd = &cobra.Command{
-	Use: "gestalt",
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "gestalt",
+		Short: "server and client root",
+		Long:  "Gestalt is a wrapper around K/V stores. It provides type checks so that invalid values are not set, and to enable the user to get an overview of the keys in their store.",
+	}
+
+	markdownCmd = &cobra.Command{
+		Use:    "__markdown",
+		Hidden: true,
+		Run: func(cmd *cobra.Command, args []string) {
+			cobra.GenMarkdownTree(rootCmd, "docs/cli/")
+		},
+	}
+)
 
 func init() {
 	cmd.ServerFlags()
@@ -39,6 +51,7 @@ func init() {
 		cmd.ServerCmd,
 		client.SchemaCmd,
 		client.ValueCmd,
+		markdownCmd,
 	)
 }
 

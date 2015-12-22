@@ -28,6 +28,7 @@ var (
 	SchemaListCmd = &cobra.Command{
 		Use:   "list",
 		Short: "list schemas",
+		Long:  "List schemas, optionally pretty-printed. In successful cases, this command prints JSON. This command corresponds to calling `GET /v1/schemas`.",
 		Run: func(cmd *cobra.Command, args []string) {
 			resp, err := client.Do(
 				"GET",
@@ -47,6 +48,7 @@ var (
 	SchemaSubmitCmd = &cobra.Command{
 		Use:   "submit {schema.json}",
 		Short: "submit a schema",
+		Long:  "Create or update a schema in the remote store. This is specified as `schema.json`, a path to a JSON file on disk. If the `--set-defaults` flag is set, the API will immediately set any defaults specified in the file. In successful cases, this command prints JSON equivalent to the schema which was persisted. This command corresponds to calling `POST /v1/schemas` with the given flag. The `--set-defaults` flag corresponds to the `setDefaults` query string option.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected exactly one JSON file as an argument")
@@ -97,6 +99,7 @@ var (
 	SchemaShowCmd = &cobra.Command{
 		Use:   "show {name}",
 		Short: "show a schema",
+		Long:  "Show a schema, specified by `name`. In successful cases, this command prints JSON. This command corresponds to calling `GET /v1/schemas/{name}`.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected exactly one name as an argument")
@@ -123,6 +126,7 @@ var (
 	SchemaDeleteCmd = &cobra.Command{
 		Use:   "delete {name}",
 		Short: "delete a schema",
+		Long:  "Delete an existing schema, specified by `name`. If the `--delete-keys` flag is set, the API will also delete any keys that are specified in the schema being deleted. In successful cases, this command does not print anything. This command corresponds to calling `DELETE /v1/schemas/{name}`. The `--delete-keys` flag corresponds to the `deleteKeys` query string option.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected exactly one schema name as an argument")
@@ -151,6 +155,7 @@ var (
 	SchemaValidateCmd = &cobra.Command{
 		Use:   "validate {schema.json}",
 		Short: "validate a schema",
+		Long:  "Validate the schema specified as `schema.json`, a path to a JSON file on disk. If it is valid, the command prints \"OK\". This command has no corresponding API call, but the creation/update logic on the server performs the same validation.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected exactly one JSON file as an argument")
@@ -193,7 +198,7 @@ func SchemaFlags() {
 	SchemaCmd.PersistentFlags().Duration("timeout", 20*time.Second, "set the request timeout")
 	SchemaCmd.PersistentFlags().Bool("pretty", true, "pretty-print responses")
 
-	SchemaSubmitCmd.Flags().Bool("set-defaults", true, "set defaults when submitting")
+	SchemaSubmitCmd.Flags().Bool("set-defaults", false, "set defaults when submitting")
 
 	SchemaDeleteCmd.Flags().Bool("delete-keys", false, "also delete configuration keys")
 

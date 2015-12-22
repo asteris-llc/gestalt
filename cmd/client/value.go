@@ -23,6 +23,7 @@ var (
 	ValueListCmd = &cobra.Command{
 		Use:   "list {schema name}",
 		Short: "list the values in a schema",
+		Long:  "List values in the schema specified by `schema name`. In successful cases, this command prints JSON. This command corresponds to calling `GET /v1/schemas/{schema name}/values`.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected exactly one name as an argument")
@@ -49,6 +50,7 @@ var (
 	ValueWriteCmd = &cobra.Command{
 		Use:   "write {schema name} {value name} {value}",
 		Short: "write a value",
+		Long:  "Write a value to the specified schema and value in the remote store. In successful cases, the new value will be printed as JSON. This command corresponds to calling `PUT /v1/schemas/{schema name}/values/{value name}` with `{value}` as the JSON payload. Because of this, `value` must be valid JSON.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 3 {
 				return errors.New("exected exactly two arguments: schema name, value name, and value")
@@ -75,6 +77,7 @@ var (
 	ValueShowCmd = &cobra.Command{
 		Use:   "show {schema name} {value name}",
 		Short: "show a single value in a schema",
+		Long:  "Show a value specifed by `{schema name}` and `{value name}`. In successful cases, the value will be printed as JSON. This command corresponds to `GET /v1/schemas/{schema name}/values/{value name}`.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 {
 				return errors.New("exected exactly two arguments: schema name and value name")
@@ -101,6 +104,7 @@ var (
 	ValueDeleteCmd = &cobra.Command{
 		Use:   "delete {schema name} {value name}",
 		Short: "delete a single value in a schema",
+		Long:  "Delete a single value specified by `{schema name}` and `{value name}`. In the semantics of the API, this will delete the value if not required and no default set, set the default value if present, and refuse to delete the key if required. This command corresponds to `DELETE /v1/schemas/{schema name}/values/{value name}`.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 {
 				return errors.New("exected exactly two arguments: schema name and value name")

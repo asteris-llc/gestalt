@@ -14,6 +14,7 @@ consumer requirements, and is not necessarily all implemented. Please follow
 - [Gestalt](#gestalt)
     - [Deploying Gestalt](#deploying-gestalt)
         - [Running a Server](#running-a-server)
+        - [Using the client](#using-the-client)
     - [Basic Workflow](#basic-workflow)
         - [Define a Schema](#define-a-schema)
         - [Submit the Schema to Gestalt](#submit-the-schema-to-gestalt)
@@ -48,6 +49,10 @@ This means that on startup, there will be a store named "dev", whose keys will
 be rooted at `/dev`. Start the server with `gestalt server
 --config=gestalt.toml` (there's a default configuration for you to get started
 with at [gestalt.sample.toml](gestalt.sample.toml))
+
+### Using the client
+
+See the generated documentation at (docs/cli)[docs/cli/gestalt.md]
 
 ## Basic Workflow
 
@@ -95,18 +100,19 @@ condition when reading keys back out.
 After you [have a server running](#running-a-server), you can use the `gestalt`
 CLI tool to submit the schema:
 
-    $ gestalt submit sample-schema.json --host=localhost:3000
+    $ gestalt schema submit sample-schema.json --host=localhost:3000
+    { response json elided }
 
 This command will set any defaults set in your schema. Use the same command to
 update an existing schema. If you don't have access to the `gestalt` tool, you
 can also use cURL:
 
-    $ curl -X POST -d @sample-schema.json -H "Content-Type: application/json" http://localhost:3000/v1/schemas/
+    $ curl -X POST -d @sample-schema.json -H "Content-Type: application/json" http://localhost:3000/v1/schemas
     { response json elided }
 
 Once you have the schema submitted, you can also use `gestalt` to set the values:
 
-    $ gestalt write sample-app email-host 1.2.3.4 --host=localhost:3000
+    $ gestalt value write sample-app email-host 1.2.3.4 --host=localhost:3000
 
 Or the corresponding cURL:
 

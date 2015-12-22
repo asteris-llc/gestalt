@@ -21,3 +21,6 @@ web/web.go: web/impl web.go.sed
 	echo '// !!! automatically generated !!!\n// Use "make web/web.go" instead of editing this file.\n' | cat - web/impl/main.go > web/web.go
 	sed -E -i '' -f web.go.sed web/web.go
 	gofmt -w web/web.go
+
+docs/cli: cmd/**/*.go *.go
+	go run *.go __markdown
