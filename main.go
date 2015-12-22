@@ -21,9 +21,12 @@ func init() {
 
 	flagsets := []*pflag.FlagSet{
 		cmd.ServerCmd.Flags(),
+
 		client.SchemaCmd.PersistentFlags(),
 		client.SchemaSubmitCmd.Flags(),
 		client.SchemaDeleteCmd.Flags(),
+
+		client.ValueCmd.PersistentFlags(),
 	}
 	for _, flagset := range flagsets {
 		if err := viper.BindPFlags(flagset); err != nil {
@@ -32,8 +35,11 @@ func init() {
 	}
 
 	// set up command hierarchy
-	rootCmd.AddCommand(cmd.ServerCmd)
-	rootCmd.AddCommand(client.SchemaCmd)
+	rootCmd.AddCommand(
+		cmd.ServerCmd,
+		client.SchemaCmd,
+		client.ValueCmd,
+	)
 }
 
 func main() {
