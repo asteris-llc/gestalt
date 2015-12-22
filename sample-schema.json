@@ -1,19 +1,8 @@
 {
-    "name": "Sample App",
-    "type": "object",
-    "properties": {
-        "email-host": {
-            "type": "string",
-            "required": true
-        },
-        "features": {
-            "type": "object",
-            "properties": {
-                "an-amazing-feature": {
-                    "type": "bool",
-                    "default": false
-                }
-            }
-        }
-    }
+    "name": "sample-app",
+    "backend": "dev",
+    "fields": [
+        {"name": "email-host", "type": "string", "required": true},
+        {"name": "features/an-amazing-feature", "type": "boolean", "default": false}
+    ]
 }
