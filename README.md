@@ -52,7 +52,7 @@ with at [gestalt.sample.toml](gestalt.sample.toml))
 
 ### Using the client
 
-See the generated documentation at (docs/cli)[docs/cli/gestalt.md]
+See the generated documentation at [docs/cli](docs/cli/gestalt.md)
 
 ## Basic Workflow
 
