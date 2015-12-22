@@ -10,9 +10,15 @@ import (
 	"os"
 )
 
+// Name indicates the tool name
+const Name = "gestalt"
+
+// Version indicates the tool version
+const Version = "1.0.0"
+
 var (
 	rootCmd = &cobra.Command{
-		Use:   "gestalt",
+		Use:   Name,
 		Short: "server and client root",
 		Long:  "Gestalt is a wrapper around K/V stores. It provides type checks so that invalid values are not set, and to enable the user to get an overview of the keys in their store.",
 	}
